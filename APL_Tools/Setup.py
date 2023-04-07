@@ -6,10 +6,11 @@ from .Graphs import Dart_Board, Touch_Sensor_Plot
 import matplotlib.pyplot as plt
 import cv2
 from lib.APL_share import APL_Share
+
+
 # ----config variables-----#
 
-def ModifyTouchData(df_sensor,pre_num = 5, back_num =2):
-
+def ModifyTouchData(df_sensor, pre_num=5, back_num=2):
     df_sensor_rot = pd.DataFrame(columns=df_sensor.columns)
     touch_count = 0
     num_touch = 0
@@ -39,7 +40,6 @@ def ModifyTouchData(df_sensor,pre_num = 5, back_num =2):
 
 
 def SelectFirstTouchDownEachTap(fulldata):
-
     fulldata = ModifyTouchData(fulldata)
 
     concisedata = pd.DataFrame(columns=fulldata.columns)
@@ -50,7 +50,6 @@ def SelectFirstTouchDownEachTap(fulldata):
 
         if fulldata.iloc[i]['Type'] == "CONTACT":
             if touch_count == 0:
-
                 concisedata = concisedata.append(fulldata.iloc[i], ignore_index=True)
             touch_count += 1
         # format
@@ -58,14 +57,10 @@ def SelectFirstTouchDownEachTap(fulldata):
             touch_count = 0
             num_touch += 1
 
-
     concisedata.reset_index(drop=True, inplace=True)
-
 
     print(num_touch)
     return concisedata
-
-
 
 
 def SelectAveragePosEachTap(fulldata):
@@ -97,12 +92,9 @@ def SelectAveragePosEachTap(fulldata):
     return concisedata
 
 
-
 # read in robot data to use in the align function - usually accuracy data as this has one recording per data point
 
 def data_Setup(df_sensor, APL_cfg, APL_Spec, align_tuning=False):
-
-
     X_Pixels = int(APL_cfg['SCREEN_WIDTH'])
     Y_Pixels = int(APL_cfg['SCREEN_HEIGHT'])
     X_Length_mm = float(APL_cfg['DutWidth'])
@@ -117,7 +109,10 @@ def data_Setup(df_sensor, APL_cfg, APL_Spec, align_tuning=False):
 
     pd.set_option('display.max_columns', None)
 
-    sensor = df_sensor[['duration (msec)', 'ID', 'Type', 'X(pixels)', 'Y(pixels)']]  # select the touch event and position detected by the touch sensor
+    if 'duration (msec)' in df_sensor.columns:
+        # rename the columns to match the other data
+        df_sensor.rename(columns={'duration (msec)' : 'duration(msec)'}, inplace=True)
+    sensor = df_sensor.copy()
 
     # ---if axis needs to be swapped---#
     # ---swaps the column headings so that the X and Y axis are the right way around--#
@@ -130,11 +125,11 @@ def data_Setup(df_sensor, APL_cfg, APL_Spec, align_tuning=False):
         sensor['Y(pixels)'] = y
 
     if Axis_Swap:
-        sensor.columns = [' duration (msec)','ID', 'Type', 'Y(pixels)', 'X(pixels)']
-        column_titles = [' duration (msec)','ID', 'Type', 'X(pixels)', 'Y(pixels)']
+        sensor.columns = ['duration(msec)', 'ID', 'Type', 'Y(pixels)', 'X(pixels)']
+        column_titles = ['duration(msec)', 'ID', 'Type', 'X(pixels)', 'Y(pixels)']
         sensor = sensor.reindex(columns=column_titles)
         X_Pixel_density = Y_Pixels / X_Length_mm  # X Pixel density in Pixels/mm
-        Y_Pixel_density = X_Pixels / Y_Length_mm # Y Pixel density in Pixels/mm
+        Y_Pixel_density = X_Pixels / Y_Length_mm  # Y Pixel density in Pixels/mm
 
     x_pos_mm = sensor['X(pixels)'] / X_Pixel_density  # value of x position in mm
     sensor = sensor.assign(XPOS=x_pos_mm)  # resign to XPOS row
@@ -146,10 +141,9 @@ def data_Setup(df_sensor, APL_cfg, APL_Spec, align_tuning=False):
         x_scaling_factor, x_offset_factor, y_scaling_factor, y_offset_factor = [1, 0, 1, 0]
     else:
         x_scaling_factor, x_offset_factor, y_scaling_factor, y_offset_factor = float(APL_cfg['DutXScalingFactor']), \
-                                                                               float(APL_cfg['DutActiveOffsetLR']), \
-                                                                               float(APL_cfg['DutYScalingFactor']), \
-                                                                               float(APL_cfg['DutActiveOffsetUD'])
-
+            float(APL_cfg['DutActiveOffsetLR']), \
+            float(APL_cfg['DutYScalingFactor']), \
+            float(APL_cfg['DutActiveOffsetUD'])
 
     x_adjust = (sensor['XPOS'] - x_offset_factor) / x_scaling_factor  # applying the scaling factor to the touch
     # data
@@ -160,12 +154,12 @@ def data_Setup(df_sensor, APL_cfg, APL_Spec, align_tuning=False):
 
     return sensor  # return the DataFrame sensor to be used in the calculations
 
-def align(touch_data, robot_data,APL_cfg,APL_Spec, directory):
 
+def align(touch_data, robot_data, APL_cfg, APL_Spec, directory):
     # align the touch coordinate space with the robot coordinate space
-    touch_data = data_Setup(touch_data, APL_cfg,APL_Spec,align_tuning=True)
+    touch_data = data_Setup(touch_data, APL_cfg, APL_Spec, align_tuning=True)
     Accuracy_Requirement_Centre = float(APL_Spec["Accuracy_Centre"])
-    Accuracy_Requirement_Full= float(APL_Spec["Accuracy_Full"])
+    Accuracy_Requirement_Full = float(APL_Spec["Accuracy_Full"])
 
     firsttouchsensor = SelectFirstTouchDownEachTap(touch_data)
     finger_size = APL_cfg['TestFingerSize']
@@ -190,14 +184,20 @@ def align(touch_data, robot_data,APL_cfg,APL_Spec, directory):
     before_align_df['YPOS'] = align_y_df['YPOS']
 
     APL_Share.before_align_df = before_align_df
-    APL_Share.SubFigList["Calibration_rawdata_before"] = Touch_Sensor_Plot(before_align_df, 'XPOS', 'YPOS', 'robot_x', 'robot_y','Alignment Scan Before Correction', 'x lines (mm)', 'y_lines (mm)', finger_size, directory)
+    APL_Share.SubFigList["Calibration_rawdata_before"] = Touch_Sensor_Plot(before_align_df, 'XPOS', 'YPOS', 'robot_x',
+                                                                           'robot_y',
+                                                                           'Alignment Scan Before Correction',
+                                                                           'x lines (mm)', 'y_lines (mm)', finger_size,
+                                                                           directory)
 
     before_align = pd.DataFrame(columns=['X_delta', 'Y_delta'])
     before_align['X_delta'] = align_x_df['XPOS'] - align_x_df['robot_x']
     before_align['Y_delta'] = align_y_df['YPOS'] - align_y_df['robot_y']
 
     APL_Share.before_align_error_df = before_align
-    APL_Share.SubFigList["Calibration_error_before"] = Dart_Board(before_align, 'Alignment Scan Before Correction', Accuracy_Requirement_Centre, Accuracy_Requirement_Full, finger_size, directory)
+    APL_Share.SubFigList["Calibration_error_before"] = Dart_Board(before_align, 'Alignment Scan Before Correction',
+                                                                  Accuracy_Requirement_Centre,
+                                                                  Accuracy_Requirement_Full, finger_size, directory)
 
     unique_x = robot_data['robot_x'].unique()  # a list of all the unique x values in the robot data
     unique_y = robot_data['robot_y'].unique()  # a list of all the unique y values in the robot data
@@ -238,7 +238,10 @@ def align(touch_data, robot_data,APL_cfg,APL_Spec, directory):
     align_df['robot_y'] = align_y_df['robot_y']  # copy the robot data over to the new DataFrame
 
     APL_Share.align_df = align_df
-    APL_Share.SubFigList["Calibration_rawdata_after"] = Touch_Sensor_Plot(align_df, 'XPOS', 'YPOS', 'robot_x', 'robot_y','Alignment Scan After Correction', 'x lines (mm)', 'y_lines (mm)', finger_size, directory)
+    APL_Share.SubFigList["Calibration_rawdata_after"] = Touch_Sensor_Plot(align_df, 'XPOS', 'YPOS', 'robot_x',
+                                                                          'robot_y', 'Alignment Scan After Correction',
+                                                                          'x lines (mm)', 'y_lines (mm)', finger_size,
+                                                                          directory)
     list_coef = [align_coef_x, align_coef_y]  # list containing the alignment coefficients that will be used on the
     # touch data for each calculation - the format is [[mx, cx], [my, cy]]
     # print(list_coef)
@@ -247,15 +250,16 @@ def align(touch_data, robot_data,APL_cfg,APL_Spec, directory):
     align_error_df['Y_delta'] = align_df['YPOS'] - align_df['robot_y']
 
     APL_Share.align_error_df = align_error_df
-    APL_Share.SubFigList["Calibration_error_after"] = Dart_Board(align_error_df, 'Alignment Scan After Correction', Accuracy_Requirement_Centre, Accuracy_Requirement_Full, finger_size, directory)
+    APL_Share.SubFigList["Calibration_error_after"] = Dart_Board(align_error_df, 'Alignment Scan After Correction',
+                                                                 Accuracy_Requirement_Centre, Accuracy_Requirement_Full,
+                                                                 finger_size, directory)
 
     # plt.show()
 
-    return list_coef,before_align,align_error_df
+    return list_coef, before_align, align_error_df
 
 
-def data_Setup_Affine_Transform(df_sensor, APL_cfg, APL_Spec, test_directory,align_tuning=False):
-
+def data_Setup_Affine_Transform(df_sensor, APL_cfg, APL_Spec, test_directory, align_tuning=False):
     X_Pixels = int(APL_cfg['SCREEN_WIDTH'])
     Y_Pixels = int(APL_cfg['SCREEN_HEIGHT'])
     X_Length_mm = float(APL_cfg['DutWidth'])
@@ -270,38 +274,40 @@ def data_Setup_Affine_Transform(df_sensor, APL_cfg, APL_Spec, test_directory,ali
 
     pd.set_option('display.max_columns', None)
 
-    sensor = df_sensor[['duration (msec)', 'ID', 'Type', 'X(pixels)', 'Y(pixels)']].copy()  # select the touch event and position detected by the touch sensor
+    if 'duration (msec)' in df_sensor.columns:
+        # rename the columns to match the other data
+        df_sensor.rename(columns={'duration (msec)': 'duration(msec)'}, inplace=True)
+    sensor = df_sensor.copy()
 
     # ---if axis needs to be swapped---#
     # ---swaps the column headings so that the X and Y axis are the right way around--#
     if X_invert:
         x = (X_Pixels - 1) - sensor['X(pixels)']
-        sensor.loc[:,'X(pixels)'] = x
+        sensor.loc[:, 'X(pixels)'] = x
 
     if Y_invert:
         y = (Y_Pixels - 1) - sensor['Y(pixels)']
-        sensor.loc[:,'Y(pixels)'] = y
+        sensor.loc[:, 'Y(pixels)'] = y
 
     if Axis_Swap:
-        sensor.columns = [' duration (msec)','ID', 'Type', 'Y(pixels)', 'X(pixels)']
-        column_titles = [' duration (msec)','ID', 'Type', 'X(pixels)', 'Y(pixels)']
+        sensor.columns = ['duration(msec)', 'ID', 'Type', 'Y(pixels)', 'X(pixels)']
+        column_titles = ['duration(msec)', 'ID', 'Type', 'X(pixels)', 'Y(pixels)']
         sensor = sensor.reindex(columns=column_titles)
         X_Pixel_density = Y_Pixels / X_Length_mm  # X Pixel density in Pixels/mm
-        Y_Pixel_density = X_Pixels / Y_Length_mm # Y Pixel density in Pixels/mm
+        Y_Pixel_density = X_Pixels / Y_Length_mm  # Y Pixel density in Pixels/mm
 
     x_pos_mm = sensor['X(pixels)'] / X_Pixel_density  # value of x position in mm
     sensor = sensor.assign(XPOS=x_pos_mm)  # resign to XPOS row
     y_pos_mm = sensor['Y(pixels)'] / Y_Pixel_density  # value of y position in mm
     sensor = sensor.assign(YPOS=y_pos_mm)  # resign to YPOS row
     sensor = sensor.reset_index(drop=True)  # reset the index of the DataFrame
-    cal_path = os.path.join(test_directory,"calibration_matrix.npy")
+    cal_path = os.path.join(test_directory, "calibration_matrix.npy")
     if align_tuning or not os.path.exists(cal_path):
         print("using data without any calibration")
 
     else:
-        touch_data = sensor[['XPOS','YPOS']]
+        touch_data = sensor[['XPOS', 'YPOS']]
         sensor_array = touch_data.values
-
 
         H = np.load(cal_path)
         print("using data  calibration data")
@@ -314,14 +320,12 @@ def data_Setup_Affine_Transform(df_sensor, APL_cfg, APL_Spec, test_directory,ali
         sensor['XPOS'] = sensor_aligned_array[0, :]
         sensor['YPOS'] = sensor_aligned_array[1, :]
 
-
     return sensor  # return the DataFrame sensor to be used in the calculations
 
 
-def align_Affine_Transform(touch_data, robot_data,APL_cfg,APL_Spec, directory,method):
-
+def align_Affine_Transform(touch_data, robot_data, APL_cfg, APL_Spec, directory, method):
     # align the touch coordinate space with the robot coordinate space
-    touch_data = data_Setup_Affine_Transform(touch_data, APL_cfg, APL_Spec,directory,align_tuning=True)
+    touch_data = data_Setup_Affine_Transform(touch_data, APL_cfg, APL_Spec, directory, align_tuning=True)
 
     Accuracy_Requirement_Centre = float(APL_Spec["Accuracy_Centre"])
     Accuracy_Requirement_Full = float(APL_Spec["Accuracy_Full"])
@@ -349,62 +353,67 @@ def align_Affine_Transform(touch_data, robot_data,APL_cfg,APL_Spec, directory,me
     before_align_df['YPOS'] = align_y_df['YPOS']
 
     APL_Share.before_align_df = before_align_df
-    APL_Share.SubFigList["Calibration_rawdata_before"] = Touch_Sensor_Plot(before_align_df, 'XPOS', 'YPOS', 'robot_x', 'robot_y','Alignment Scan Before Correction', 'x lines (mm)', 'y_lines (mm)', finger_size, directory)
+    APL_Share.SubFigList["Calibration_rawdata_before"] = Touch_Sensor_Plot(before_align_df, 'XPOS', 'YPOS', 'robot_x',
+                                                                           'robot_y',
+                                                                           'Alignment Scan Before Correction',
+                                                                           'x lines (mm)', 'y_lines (mm)', finger_size,
+                                                                           directory)
 
     before_align = pd.DataFrame(columns=['X_delta', 'Y_delta'])
     before_align['X_delta'] = align_x_df['XPOS'] - align_x_df['robot_x']
     before_align['Y_delta'] = align_y_df['YPOS'] - align_y_df['robot_y']
 
     APL_Share.before_align_error_df = before_align
-    APL_Share.SubFigList["Calibration_error_before"] = Dart_Board(before_align, 'Alignment Scan Before Correction', Accuracy_Requirement_Centre, Accuracy_Requirement_Full, finger_size, directory)
+    APL_Share.SubFigList["Calibration_error_before"] = Dart_Board(before_align, 'Alignment Scan Before Correction',
+                                                                  Accuracy_Requirement_Centre,
+                                                                  Accuracy_Requirement_Full, finger_size, directory)
 
     sensor_array = np.float32(firsttouchsensor.values)
     robot_array = np.float32(robot_data.values[:, :-1])
 
-
-    if method =="Affine":
-
+    if method == "Affine":
         H, _ = cv2.estimateAffine2D(sensor_array, robot_array, method=cv2.RANSAC, ransacReprojThreshold=5)
 
-    if method =="Homography":
-
+    if method == "Homography":
         H, _ = cv2.findHomography(sensor_array, robot_array, method=cv2.RANSAC, ransacReprojThreshold=5)
 
     cal_path = os.path.join(directory, "calibration_matrix.npy")
     np.save(cal_path, H)
     cal_path_txt = os.path.join(directory, "calibration_matrix.txt")
-    np.savetxt(cal_path_txt,H,fmt='%.18e',
-              delimiter=' ',
-              newline='\n',)
+    np.savetxt(cal_path_txt, H, fmt='%.18e',
+               delimiter=' ',
+               newline='\n', )
 
     sensor_array = np.column_stack((sensor_array, np.ones(len(sensor_array))))
 
     sensor_aligned_array = np.dot(H, sensor_array.T)
 
-
-
     align_column = ['XPOS', 'YPOS', 'robot_x', 'robot_y']  # columns for a DataFrame containing the aligned touch
     # data and robot data
     align_df = pd.DataFrame(columns=align_column)  # create DataFrame of aligned DataFrame
 
-    align_df['XPOS'] =sensor_aligned_array[0,:]  # in order to align the touch data to the robot data the
+    align_df['XPOS'] = sensor_aligned_array[0, :]  # in order to align the touch data to the robot data the
     # formula has to be invested so that the touch data is the input value and the output is the aligned touch data
     # which should be better aligned to the robot data
     align_df['robot_x'] = align_x_df['robot_x']  # copy the robot data over to the new DataFrame
-    align_df['YPOS'] = sensor_aligned_array[1,:]  # in order to align the touch data to the robot data the
+    align_df['YPOS'] = sensor_aligned_array[1, :]  # in order to align the touch data to the robot data the
     # formula has to be invested so that the touch data is the input value and the output is the aligned touch data
     # which should be better aligned to the robot data
     align_df['robot_y'] = align_y_df['robot_y']  # copy the robot data over to the new DataFrame
 
     APL_Share.align_df = align_df
-    APL_Share.SubFigList["Calibration_rawdata_after"] = Touch_Sensor_Plot(align_df, 'XPOS', 'YPOS', 'robot_x', 'robot_y','Alignment Scan After Correction', 'x lines (mm)', 'y_lines (mm)', finger_size, directory)
+    APL_Share.SubFigList["Calibration_rawdata_after"] = Touch_Sensor_Plot(align_df, 'XPOS', 'YPOS', 'robot_x',
+                                                                          'robot_y', 'Alignment Scan After Correction',
+                                                                          'x lines (mm)', 'y_lines (mm)', finger_size,
+                                                                          directory)
 
     align_error_df = pd.DataFrame(columns=['X_delta', 'Y_delta'])
     align_error_df['X_delta'] = align_df['XPOS'] - align_df['robot_x']
     align_error_df['Y_delta'] = align_df['YPOS'] - align_df['robot_y']
     APL_Share.align_error_df = align_error_df
-    APL_Share.SubFigList["Calibration_error_after"] = Dart_Board(align_error_df, 'Alignment Scan After Correction', Accuracy_Requirement_Centre, Accuracy_Requirement_Full, finger_size, directory)
-
+    APL_Share.SubFigList["Calibration_error_after"] = Dart_Board(align_error_df, 'Alignment Scan After Correction',
+                                                                 Accuracy_Requirement_Centre, Accuracy_Requirement_Full,
+                                                                 finger_size, directory)
 
     # plt.show()
 

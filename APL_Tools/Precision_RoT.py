@@ -4,6 +4,12 @@ from .Graphs import Scatter_Plot_df,Touch_Sensor_Plot
 from lib.APL_share import APL_Share
 import matplotlib.pyplot as plt
 
+
+# calculate mean square error
+def mean_squared_error(y_true, y_pred):
+    return np.mean(np.square(y_pred - y_true))
+
+
 def precision_RoT(df_sensor, df_robot, number_of_repeats, APL_cfg, APL_Spec, edge, directory):
 
     x_length_mm = float(APL_cfg['DutWidth'])
@@ -50,12 +56,15 @@ def precision_RoT(df_sensor, df_robot, number_of_repeats, APL_cfg, APL_Spec, edg
         precision_df['robot_y'] = pd.Series(df_robot['robot_y'])
     print(precision_df)
     precision_columns = ['robot_x', 'robot_y', 'precision_error_XPOS', 'precision_error_YPOS',
-                         'combined']
+                         'combined', 'mse_error_XPOS', 'mse_error_YPOS', 'mse_error']
     precision_table = pd.DataFrame(columns=precision_columns)
     precision_x_list = []
     precision_y_list = []
     robot_x_list = []
     robot_y_list = []
+    mse_x_list = []
+    mse_y_list = []
+    mse_list = []
     for i in range(0, len(precision_df), number_of_repeats):
         temp = precision_df[i:i + number_of_repeats]
         robot_x_list.append(temp.at[i, 'robot_x'])
@@ -64,6 +73,12 @@ def precision_RoT(df_sensor, df_robot, number_of_repeats, APL_cfg, APL_Spec, edg
         precision_y = temp['YPOS'].max() - temp['YPOS'].min()
         precision_x_list.append(precision_x)
         precision_y_list.append(precision_y)
+        mse_error_x = mean_squared_error(temp['XPOS'], temp['robot_x'])
+        mse_error_y = mean_squared_error(temp['YPOS'], temp['robot_y'])
+        mse_x_list.append(mse_error_x)
+        mse_y_list.append(mse_error_y)
+        mse_error = max(mse_error_x, mse_error_y)
+        mse_list.append(mse_error)
     precision_table['robot_x'] = robot_x_list
     precision_table['robot_y'] = robot_y_list
     precision_table['precision_error_XPOS'] = precision_x_list
@@ -71,6 +86,9 @@ def precision_RoT(df_sensor, df_robot, number_of_repeats, APL_cfg, APL_Spec, edg
     precision_table['combined'] = np.sqrt(
         (precision_table['precision_error_XPOS'] ** 2 + precision_table[
             'precision_error_YPOS'] ** 2))
+    precision_table['mse_error_XPOS'] = mse_x_list
+    precision_table['mse_error_YPOS'] = mse_y_list
+    precision_table['mse_error'] = mse_list
     print(precision_table)
     precision_table_centre = precision_table.copy()
     #print(precision_table)
