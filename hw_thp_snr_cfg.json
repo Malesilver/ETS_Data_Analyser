@@ -1,0 +1,9 @@
+{
+  "Dataset Path": "C:/Users/Yifan/Desktop/111",
+  "touch file prefix": "w",
+  "notouch file prefix": "wo",
+  "start idx notouch": "0",
+  "end idx notouch": "1000",
+  "start idx touch": "0",
+  "end idx touch": "1000"
+}

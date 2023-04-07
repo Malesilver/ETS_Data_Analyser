@@ -1,0 +1,14 @@
+{
+  "X_invert": "False",
+  "Y_invert": "False",
+  "Axis_Swap": "False",
+  "Edge": "17",
+  "Accuracy_Full": "1.2",
+  "Accuracy_Centre": "0.8",
+  "Precision_Full": "0.3",
+  "Precision_Centre": "0.2",
+  "Linearity_Full": "1.2",
+  "Linearity_Centre": "0.8",
+  "StationaryJitter_Full": "0.3",
+  "StationaryJitter_Centre": "0.2"
+}

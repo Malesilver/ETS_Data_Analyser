@@ -1,0 +1,13 @@
+{
+  "Dataset Path": "C:/workspace/Bitbucket/ETS_Data_Analyser/Data/SNR_Vivo/360hz",
+  "FW Version": "691",
+  "Chip": "Meon",
+  "Screen": "DP235",
+  "touch file prefix": "w",
+  "notouch file prefix": "wo",
+  "Firmware Series": "EPH 8613",
+  "start idx notouch": "0",
+  "end idx notouch": "10000",
+  "start idx touch": "0",
+  "end idx touch": "500"
+}

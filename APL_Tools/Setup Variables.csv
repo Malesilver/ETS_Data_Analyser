@@ -1,0 +1,20 @@
+variable Name,Value
+X_invert , False
+Y_invert , False
+Axis_Swap , True
+RoT , True
+X_Pixels ,2432
+Y_Pixels ,1024
+X_length_mm ,135.1818572
+Y_Length_mm ,63.62982755
+Pitch ,4
+pattern_points ,13
+number_of_repeats ,1
+x_scaling_factor,0.9385410589707285
+x_offset_factor,0.42710070574551345
+y_scaling_factor,-1.0064198142921432
+y_offset_factor,63.44646483973231
+Accuracy Requirement ,0.5
+Precision Requirement ,0.2
+Linearity Requirement ,1
+Jitter Requirements ,0.1

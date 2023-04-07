@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1102</width>
+    <height>772</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ETS Data Analyser</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>eswin.png</normaloff>eswin.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>1</number>
+    </property>
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="rightMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
+     <number>1</number>
+    </property>
+    <item>
+     <widget class="QMdiArea" name="mdiArea"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1102</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFiles">
+    <property name="title">
+     <string>Files</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuConfiguration">
+    <property name="title">
+     <string>Configuration</string>
+    </property>
+    <addaction name="actionSetting"/>
+    <addaction name="actionPanelConfig"/>
+   </widget>
+   <widget class="QMenu" name="menuAnalysis">
+    <property name="title">
+     <string>Analysis</string>
+    </property>
+    <addaction name="actionHW_THP_SNR_report"/>
+    <addaction name="action_BOE_SNR_reporter_2"/>
+   </widget>
+   <widget class="QMenu" name="menuData_Viewer">
+    <property name="title">
+     <string>Data Viewer</string>
+    </property>
+    <addaction name="actionData_Viewer"/>
+    <addaction name="actionSNR_Data_Viewer"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuTooling">
+    <property name="title">
+     <string>Tooling</string>
+    </property>
+    <addaction name="actionAPL_Analysis"/>
+    <addaction name="actionPattern_Generator"/>
+   </widget>
+   <addaction name="menuFiles"/>
+   <addaction name="menuConfiguration"/>
+   <addaction name="menuAnalysis"/>
+   <addaction name="menuData_Viewer"/>
+   <addaction name="menuTooling"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSetting"/>
+   <addaction name="actionPanelConfig"/>
+   <addaction name="separator"/>
+   <addaction name="actionHW_THP_SNR_report"/>
+   <addaction name="action_BOE_SNR_reporter_2"/>
+   <addaction name="separator"/>
+   <addaction name="actionData_Viewer"/>
+   <addaction name="actionSNR_Data_Viewer"/>
+   <addaction name="separator"/>
+   <addaction name="actionPattern_Generator"/>
+   <addaction name="actionAPL_Analysis"/>
+   <addaction name="actionExit"/>
+  </widget>
+  <action name="actionSetting">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/configuration.png</normaloff>icons/configuration.png</iconset>
+   </property>
+   <property name="text">
+    <string>SNR Setting</string>
+   </property>
+   <property name="toolTip">
+    <string>Important Config Information</string>
+   </property>
+  </action>
+  <action name="actionBOE_SNR_report">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/report.png</normaloff>icons/report.png</iconset>
+   </property>
+   <property name="text">
+    <string>BOE SNR report</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate BOE SNR report</string>
+   </property>
+  </action>
+  <action name="actionData_Viewer">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/data_viewer.png</normaloff>icons/data_viewer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Data Viewer</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/logout.png</normaloff>icons/logout.png</iconset>
+   </property>
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionPanelConfig">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/panel.png</normaloff>icons/panel.png</iconset>
+   </property>
+   <property name="text">
+    <string>Panel Configuration</string>
+   </property>
+   <property name="toolTip">
+    <string>Panel Configuration</string>
+   </property>
+  </action>
+  <action name="actionSNR_Data_Viewer">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/snr_data_viewer (2).png</normaloff>icons/snr_data_viewer (2).png</iconset>
+   </property>
+   <property name="text">
+    <string>SNR Data Viewer</string>
+   </property>
+   <property name="toolTip">
+    <string>Data Overview for SNR data</string>
+   </property>
+  </action>
+  <action name="actionPattern_Generator">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/pattern.png</normaloff>icons/pattern.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pattern Generator</string>
+   </property>
+   <property name="toolTip">
+    <string>Create required Pattern (e.g Zebra, dot, color ...)</string>
+   </property>
+  </action>
+  <action name="actionHW_THP_SNR_report">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/huawei.png</normaloff>icons/huawei.png</iconset>
+   </property>
+   <property name="text">
+    <string>HW THP SNR report</string>
+   </property>
+   <property name="toolTip">
+    <string>Calculate Huawei THP AFE SNR report</string>
+   </property>
+  </action>
+  <action name="action_BOE_SNR_reporter_2">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/boe_logo2.png</normaloff>icons/boe_logo2.png</iconset>
+   </property>
+   <property name="text">
+    <string>BOE_SNR_reporter_2</string>
+   </property>
+  </action>
+  <action name="actionAPL_Analysis">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/apl.png</normaloff>icons/apl.png</iconset>
+   </property>
+   <property name="text">
+    <string>APL Analysis</string>
+   </property>
+   <property name="toolTip">
+    <string>APL Analysis using RoT Format data</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
