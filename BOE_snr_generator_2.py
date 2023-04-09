@@ -1,13 +1,12 @@
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem,QFileDialog
+from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog
 from PySide6.QtUiTools import QUiLoader
 
 import os
 from lib.share import SI, MySignals
-from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv, HEADER_ETS
+from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv
 from threading import Thread
 import json
 from PySide6.QtCore import Qt
-
 
 gms = MySignals()
 
@@ -30,8 +29,6 @@ class Win_BOE_SNRGenerator_2:
                         'Slider': self.ui.cBoxSlider,
                         'DO': self.ui.cBoxDO}
 
-
-
         self.ui.btnClear.clicked.connect(self.onClearLog)
 
         self.loadCfgToTable()
@@ -48,9 +45,7 @@ class Win_BOE_SNRGenerator_2:
         self.ui.cBoxSlider.stateChanged.connect(self.changePatternState)
         self.ui.cBoxDO.stateChanged.connect(self.changePatternState)
 
-
         gms.log.connect(self.log)
-
 
         self.ui.tableCFG.cellChanged.connect(self.cfgItemChanged)
 
@@ -77,7 +72,6 @@ class Win_BOE_SNRGenerator_2:
 
         with open('boe_snr_cfg.json', 'w', encoding='utf8') as f:
             json.dump(SI.BOE_params.SNR_cfg, f, ensure_ascii=False, indent=2)
-
 
     def _selectFolder(self):
         FileDirectory = QFileDialog.getExistingDirectory(self.ui, "Select Dataset")
@@ -119,7 +113,7 @@ class Win_BOE_SNRGenerator_2:
         self.log(f'{cfgName} : {cfgValue}')
 
     def initSetting(self):
-        if SI.BOE_params.SNR_cfg.get('Dataset Path',None) is None:
+        if SI.BOE_params.SNR_cfg.get('Dataset Path', None) is None:
             QMessageBox.warning(
                 self.ui,
                 'Not Valid Path',
@@ -183,12 +177,15 @@ class Win_BOE_SNRGenerator_2:
                 prefix_notouch = SI.BOE_params.SNR_cfg['notouch file prefix']
                 prefix_touch = SI.BOE_params.SNR_cfg['touch file prefix']
 
-                if os.path.exists(os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern, "{}.edl.csv".format(prefix_notouch))):
+                if os.path.exists(os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern,
+                                               "{}.edl.csv".format(prefix_notouch))):
                     notouch_data_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern,
                                                      "{}.edl.csv".format(prefix_notouch))
-                    touch_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern, prefix_touch + "{}.edl.csv")
+                    touch_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern,
+                                              prefix_touch + "{}.edl.csv")
                 else:
-                    notouch_data_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern, "{}.csv".format(prefix_notouch))
+                    notouch_data_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern,
+                                                     "{}.csv".format(prefix_notouch))
                     touch_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern, prefix_touch + "{}.csv")
 
                 touch_list = get_touched_num(os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], pattern), prefix_touch)
@@ -199,17 +196,18 @@ class Win_BOE_SNRGenerator_2:
                 # AnalyseData is main class for snr analysis
                 DataAnalyse = AnalyseData(no_touch_file_path=notouch_data_path,
                                           touch_file_paths=touch_data_path_list,
-                                          Header_index=HEADER_ETS,
                                           notouch_range=(
-                                          int(SI.BOE_params.SNR_cfg['start idx notouch']), int(SI.BOE_params.SNR_cfg['end idx notouch'])),
-                                          touch_range=(int(SI.BOE_params.SNR_cfg['start idx touch']), int(SI.BOE_params.SNR_cfg['end idx touch'])))
+                                              int(SI.BOE_params.SNR_cfg['start idx notouch']),
+                                              int(SI.BOE_params.SNR_cfg['end idx notouch'])),
+                                          touch_range=(int(SI.BOE_params.SNR_cfg['start idx touch']),
+                                                       int(SI.BOE_params.SNR_cfg['end idx touch'])))
 
                 # print(pd.DataFrame(DataAnalyse.BOE_snr_summary()))
 
                 # select vendor for different report
                 # if "BOE" in SI.Customers:
                 # todo calculate BOE SNR
-                BOE_ret = DataAnalyse.BOE_snr_summary()
+                BOE_ret = DataAnalyse.boe_snr_summary()
                 DataAnalyse.write_out_csv(BOE_ret)
                 # "min_SmaxNppfullscreenR_dB": "{:.2f}".format(min_SmaxNppfullscreenR_dB),
                 # "Position_P2P": f"Touch {min_SmaxNppfullscreenR_dB_index + 1}",
@@ -226,7 +224,7 @@ class Win_BOE_SNRGenerator_2:
                                     BOE_ret["mct_summary"]["final_results"]["min_SmaxNppfullscreenR_dB"],
                                     BOE_ret["mct_summary"]["final_results"]["min_SmeanNrmsR_dB"]])
                 else:
-                    tmp_res.extend(["NaN"]*6)
+                    tmp_res.extend(["NaN"] * 6)
 
                 if BOE_ret.get("sct_row_summary", None) is not None:
 
@@ -240,7 +238,7 @@ class Win_BOE_SNRGenerator_2:
                          BOE_ret["sct_row_summary"]["final_results"]["min_sct_row_SmaxNppfullscreenR_dB"],
                          BOE_ret["sct_row_summary"]["final_results"]["min_sct_row_SmeanNrmsR_dB"]])
                 else:
-                    tmp_res.extend(["NaN"]*6)
+                    tmp_res.extend(["NaN"] * 6)
 
                 if BOE_ret.get("sct_col_summary", None) is not None:
 
@@ -248,12 +246,12 @@ class Win_BOE_SNRGenerator_2:
                     touch_index_rms = BOE_ret["sct_col_summary"]["final_results"]["index_RMS"]
                     tmp_res.extend(
                         [
-                        BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["noise_p2p_fullscreen"][0],
-                        BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["noise_rms_touch"][touch_index_rms],
-                        BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["signal_max"][touch_index_p2p],
-                        BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["signal_mean"][touch_index_rms],
-                        BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmaxNppfullscreenR_dB"],
-                        BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmeanNrmsR_dB"]])
+                            BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["noise_p2p_fullscreen"][0],
+                            BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["noise_rms_touch"][touch_index_rms],
+                            BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["signal_max"][touch_index_p2p],
+                            BOE_ret["sct_col_summary"]["snr_sct_col_summary"]["signal_mean"][touch_index_rms],
+                            BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmaxNppfullscreenR_dB"],
+                            BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmeanNrmsR_dB"]])
                 else:
                     tmp_res.extend(["NaN", "NaN"])
                 BOE_results.append(tmp_res)
@@ -367,7 +365,6 @@ class Win_BOE_SNRGenerator_2:
                         gms.log.emit(f"Pattern: {pattern} do not have mutual raw data!! Could not plot "
                                      f"positive/negative Noise Map!")
 
-
                 if self.ui.cBoxPlotSctSignal.isChecked():
                     if DataAnalyse.NoTouchFrame.sct_row is not None and DataAnalyse.NoTouchFrame.sct_col is not None:
                         DataAnalyse.plot_sct_touch_signal_all()
@@ -387,13 +384,15 @@ class Win_BOE_SNRGenerator_2:
                 # print(f"Already successful finish {pattern} !!!!!!!!!!!!!!")
                 gms.log.emit(f"Already successful finish {pattern} !!!!!!!!!!!!!!")
 
-
             # write_out_final_result_csv(SI.BOE_params.SNR_cfg['Dataset Path'], final_results)
             gms.log.emit(f"successfull save summmary for Patterns {SI.BOE_params.Patterns}")
             if BOE_results:
-                header = ["pattern (fullscreen)","noise mct(p2p)","noise mct(rms)","signal mct(p2p)","signal mct(rms)","SNppR MCT", "SNrmsR MCT",
-                          "noise sct row(p2p)","noise sct row(rms)","signal sct row(p2p)","signal sct row(rms)","SNppR SCT Row", "SNrmsR SCT Row",
-                          "noise sct col(p2p)","noise sct col(rms)","signal sct col(p2p)","signal sct col(rms)","SNppR SCT Col", "SNrmsR SCT Col"]
+                header = ["pattern (fullscreen)", "noise mct(p2p)", "noise mct(rms)", "signal mct(p2p)",
+                          "signal mct(rms)", "SNppR MCT", "SNrmsR MCT",
+                          "noise sct row(p2p)", "noise sct row(rms)", "signal sct row(p2p)", "signal sct row(rms)",
+                          "SNppR SCT Row", "SNrmsR SCT Row",
+                          "noise sct col(p2p)", "noise sct col(rms)", "signal sct col(p2p)", "signal sct col(rms)",
+                          "SNppR SCT Col", "SNrmsR SCT Col"]
                 out_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], "BOE_summary.csv")
                 write_out_final_result_csv(out_path, header, BOE_results)
                 gms.log.emit("******************** BOE final results *********************")
@@ -410,7 +409,7 @@ class Win_BOE_SNRGenerator_2:
                     align_str(header, res)
                     gms.log.emit(str(res))
             if VNX_results:
-                header = ["pattern (fullscreen)",  "SNrmsR MCT", "SNrmsR SCT Row",  "SNrmsR SCT Col"]
+                header = ["pattern (fullscreen)", "SNrmsR MCT", "SNrmsR SCT Row", "SNrmsR SCT Col"]
                 out_path = os.path.join(SI.BOE_params.SNR_cfg['Dataset Path'], "VNX_summary.csv")
                 write_out_final_result_csv(out_path, header, VNX_results)
                 gms.log.emit("******************** BOE final results *********************")

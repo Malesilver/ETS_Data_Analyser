@@ -8,7 +8,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import argparse
 from matplotlib import patches
-from lib.ETS_Dataframe import HEADER_ETS, ETS_Dataframe
+from lib.EtsDataframe import EtsDataframe
 
 file_dir = os.path.dirname(__file__)  # the directory that class "option" resides in
 pd.set_option('display.max_columns', None)
@@ -17,10 +17,9 @@ pd.set_option('display.max_columns', None)
 class AnalyseData:
     def __init__(self,
                  no_touch_file_path: str = None,
-                 touch_file_paths=None,
-                 Header_index=None,
-                 notouch_range = (0,300),
-                 touch_range = (0,100)):
+                 touch_file_paths: List[str] = None,
+                 notouch_range: (int, int) = (0, 300),
+                 touch_range: (int, int) = (0, 100)):
         if touch_file_paths is None:
             touch_file_paths = []
         self.pattern = os.path.basename(os.path.dirname(no_touch_file_path))
@@ -30,77 +29,83 @@ class AnalyseData:
         self.notouch_range = notouch_range
         self.touch_range = touch_range
 
-        self.NoTouchFrame: ETS_Dataframe = None
-        self.TouchFrameSets: List[ETS_Dataframe] = []
-        self.init_data_FrameSets(no_touch_file_path, touch_file_paths, Header_index)
+        self.NoTouchFrame: EtsDataframe = None
+        self.TouchFrameSets: List[EtsDataframe] = []
+        self.init_data_frame_sets(no_touch_file_path, touch_file_paths)
 
         self.output_folder = os.path.join(os.path.dirname(no_touch_file_path), "output")
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
 
-    def init_data_FrameSets(self,
-                            no_touch_file_path=None,
-                            touch_file_paths=[],
-                            Header_index=None):
-        self.NoTouchFrame = ETS_Dataframe(file_path=no_touch_file_path, Header_index=Header_index,start_idx=self.notouch_range[0],end_idx=self.notouch_range[1])
+    def init_data_frame_sets(self,
+                             no_touch_file_path: str,
+                             touch_file_paths: List[str],
+                             ):
+        self.NoTouchFrame = EtsDataframe(file_path=no_touch_file_path, start_idx=self.notouch_range[0],
+                                         end_idx=self.notouch_range[1])
 
-        # print(f"successfull load file {no_touch_file_path},data shape is ")
         self.row_num = self.NoTouchFrame.row_num
         self.col_num = self.NoTouchFrame.col_num
         for touch_file_path in touch_file_paths:
-            TouchFrame = ETS_Dataframe(file_path=touch_file_path, Header_index=Header_index,start_idx=self.touch_range[0],end_idx=self.touch_range[1])
+            TouchFrame = EtsDataframe(file_path=touch_file_path, start_idx=self.touch_range[0],
+                                      end_idx=self.touch_range[1])
             self.TouchFrameSets.append(TouchFrame)
-            # print(f"successfull load file {touch_file_path}")
 
     # ********************************************************
     # ***********MCT Field ***********************************
     # ********************************************************
 
     @property
-    def mct_noise_p2p_grid(self):
+    def mct_noise_p2p_grid(self) -> np.ndarray:
         """
         :return:  grid value of peak-peak noise for no-touch frame
         """
         return self.NoTouchFrame.mct_grid_p2p
 
     @property
-    def mct_noise_ave_grid(self):
+    def mct_noise_ave_grid(self) -> np.ndarray:
         """
         :return: For Huawei, the average noise means the absolute mean value for np-touch frame
         """
         return np.abs(self.NoTouchFrame.mct_grid_mean)
 
     @property
-    def mct_noise_p2p_max(self):
+    def mct_noise_p2p_max(self) -> np.ndarray:
         """
         :return:  max value of peak-peak noise for no-touch frame
         """
         return self.NoTouchFrame.mct_grid_p2p.max()
 
     @property
-    def mct_noise_p2p_mean(self):
+    def mct_noise_p2p_mean(self) -> np.ndarray:
         """
         :return:  mean value of peak-peak noise for no-touch frame
         """
         return self.NoTouchFrame.mct_grid_p2p.mean()
 
     @property
-    def mct_noise_p2p_min(self):
+    def mct_noise_p2p_min(self) -> np.ndarray:
         """
         :return: min value of peak-peak noise for no-touch frame
         """
         return self.NoTouchFrame.mct_grid_p2p.min()
 
     @property
-    def all_mct_pos_noise_grid(self):
+    def all_mct_pos_noise_grid(self) -> np.ndarray:
+        """
+        :return: grid value of positive noise for all touch frame   [frame1, frame2, ...]
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             ret.append(TouchFrame.mct_positive_noise)
         ret = np.array(ret)
-        return np.nanmax(ret,axis=0)
+        return np.nanmax(ret, axis=0)
 
     @property
-    def all_mct_neg_noise_grid(self):
+    def all_mct_neg_noise_grid(self) -> np.ndarray:
+        """
+        :return: grid value of negative noise for all touch frame   [frame1, frame2, ...]
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             ret.append(TouchFrame.mct_negative_noise)
@@ -108,11 +113,11 @@ class AnalyseData:
         return np.nanmin(ret, axis=0)
 
     @property
-    def all_touched_position(self):
-        '''
+    def all_touched_position(self) -> list:
+        """
         return the position of max value from all frames as touch node position
         :return: list node [[node1_x, node1_y] [node2_x node2_y] ...]
-        '''
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             _, y_node, x_node = TouchFrame.mct_signal_position
@@ -120,11 +125,11 @@ class AnalyseData:
         return ret
 
     @property
-    def all_mct_noise_p2p_notouch_node(self):
-        '''
+    def all_mct_noise_p2p_notouch_node(self) -> list:
+        """
         The noise is taken from no touch peak-peak grid data at touched position
         :return: list node [node1 node2 ...]
-        '''
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             _, y_node, x_node = TouchFrame.mct_signal_position
@@ -132,11 +137,11 @@ class AnalyseData:
         return ret
 
     @property
-    def all_mct_noise_ave_notouch_node(self):
-        '''
+    def all_mct_noise_ave_notouch_node(self) -> list:
+        """
         The noise is taken from no touch peak-peak grid data at touched position
         :return: list node [node1 node2 ...]
-        '''
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             _, y_node, x_node = TouchFrame.mct_signal_position
@@ -144,11 +149,11 @@ class AnalyseData:
         return ret
 
     @property
-    def all_mct_noise_p2p_touch_node(self):
-        '''
+    def all_mct_noise_p2p_touch_node(self) -> list:
+        """
         The noise is taken from touch peak-peak grid data at touched position
         :return: list node [node1 node2 ...]
-        '''
+        """
         ret = []
         for TouchFrame in self.TouchFrameSets:
             _, y_node, x_node = TouchFrame.mct_signal_position
@@ -156,7 +161,7 @@ class AnalyseData:
         return ret
 
     @property
-    def all_mct_noise_rms_touch(self):
+    def all_mct_noise_rms_touch(self) -> list:
         """
         The noise is taken from rms noise (in touch raw data) grid data at touched position
         :return: list node [node1 node2 ...]
@@ -192,19 +197,22 @@ class AnalyseData:
         return ret
 
     @property
-    def all_mct_signal_max(self):
+    def all_mct_signal_max(self) -> list:
+        """
+        :return: list of max signal [node1 node2 ...]
+        """
         return [TouchData.mct_signal_max for TouchData in self.TouchFrameSets]
 
     @property
-    def all_mct_signal_min(self):
+    def all_mct_signal_min(self) -> list:
         return [TouchData.mct_signal_min for TouchData in self.TouchFrameSets]
 
     @property
-    def all_mct_signal_mean(self):
+    def all_mct_signal_mean(self) -> list:
         return [TouchData.mct_signal_mean for TouchData in self.TouchFrameSets]
 
     @property
-    def all_SminNppnotouchR(self):
+    def all_SminNppnotouchR(self) -> list:
         """
         (using in Huawei SNppR)
         Using min signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
@@ -215,7 +223,7 @@ class AnalyseData:
         for TouchFrame in self.TouchFrameSets:
             _, y_node, x_node = TouchFrame.mct_signal_position
             noise = self.NoTouchFrame.mct_grid_p2p[y_node][x_node]
-            if noise ==0:
+            if noise == 0:
                 SmaxNpptouchR = np.inf
             else:
                 SmaxNpptouchR = TouchFrame.mct_signal_min / noise
@@ -223,7 +231,7 @@ class AnalyseData:
         return ret
 
     @property
-    def all_SmeanNppnotouchR(self):
+    def all_SmeanNppnotouchR(self) -> list:
         '''
         (using in Huawei SNppR)
         Using average signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
@@ -238,7 +246,7 @@ class AnalyseData:
         return ret
 
     @property
-    def all_SmaxNppnotouchR(self):
+    def all_SmaxNppnotouchR(self) -> list:
         '''
         (using in BOE SNppR) Using max signal from touch raw data as signal, and peak-peak noise in no touch raw data
         at touched node as noise :return: list of SNR [node1 node2 ...]
@@ -252,7 +260,7 @@ class AnalyseData:
         return ret
 
     @property
-    def all_SminNpptouchR(self):
+    def all_SminNpptouchR(self) -> list:
         '''
         (using in Huawei quick test)
         Using min signal from touch raw data as signal, and peak-peak noise in touch raw data at touched node as noise
@@ -267,42 +275,7 @@ class AnalyseData:
         return ret
 
     @property
-    def all_SmaxNppnotouchR_dB(self):
-
-        return [20 * np.log10(val) for val in self.all_SmaxNppnotouchR]
-
-    @property
-    def all_SminNpptouchR_dB(self):
-        '''
-        (using in Huawei quick test)
-        Using min signal from touch raw data as signal, and peak-peak noise in touch raw data at touched node as noise
-        :return: list of SNR [node1 node2 ...]
-        '''
-
-        return [20 * np.log10(val) for val in self.all_SminNpptouchR]
-
-    @property
-    def all_SminNppnotouchR_dB(self):
-        '''
-        (using in Huawei SNppR test)
-        Using min signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
-        :return: list of SNR [node1 node2 ...]
-        '''
-
-        return [20 * np.log10(val) for val in self.all_SminNppnotouchR]
-
-    @property
-    def all_SmeanNppnotouchR_dB(self):
-        '''
-        (using in Huawei SNppR test)
-        Using mean signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
-        :return: list of SNR [node1 node2 ...]
-        '''
-
-        return [20 * np.log10(val) for val in self.all_SmeanNppnotouchR]
-
-    @property
-    def all_SmaxNppfullscreenR(self):
+    def all_SmaxNppfullscreenR(self) -> list:
         ret = []
 
         for TouchFrame in self.TouchFrameSets:
@@ -311,14 +284,14 @@ class AnalyseData:
         return ret
 
     @property
-    def all_SmaxNppfullscreenR_dB(self):
+    def all_SmaxNppfullscreenR_dB(self) -> List:
 
         return [20 * np.log10(val) for val in self.all_SmaxNppfullscreenR]
 
     @property
-    def all_SmeanNrmsR(self):
+    def all_SmeanNrmsR(self) -> list:
         ret = []
-        for idx,TouchFrame in enumerate(self.TouchFrameSets):
+        for idx, TouchFrame in enumerate(self.TouchFrameSets):
             _, y_node, x_node = TouchFrame.mct_signal_position
             SmeanNrmsR = TouchFrame.mct_signal_mean / self.all_mct_noise_rms_touch[idx]
             ret.append(SmeanNrmsR)
@@ -338,6 +311,66 @@ class AnalyseData:
         return ret
 
     @property
+    def all_SmeanNnotouchrmsR(self) -> list:
+        """
+        calculate SNR using mean signal and rms noise in no touch raw data
+        :return: list of SNR [TouchFrame1, TouchFrame2, ...]
+        """
+        ret = []
+        for idx, TouchFrame in enumerate(self.TouchFrameSets):
+            _, row_node, col_node = TouchFrame.mct_signal_position
+            SmeanNnotouchrmsR = TouchFrame.mct_signal_mean / self.NoTouchFrame.mct_grid_rms[row_node][col_node]
+            ret.append(SmeanNnotouchrmsR)
+        return ret
+
+    @property
+    def all_SmeanNnotouchrmsR_dB(self) -> list:
+        """
+        calculate SNR using mean signal and rms noise in no touch raw data in dB
+        :return: list of SNR [TouchFrame1, TouchFrame2, ...]
+        """
+        return [20 * np.log10(val) for val in self.all_SmeanNnotouchrmsR]
+
+    @property
+    def all_SmaxNppnotouchR_dB(self) -> list:
+        """
+        (using in BOE SNppR) Using max signal from touch raw data as signal, and peak-peak noise in no touch raw data
+        :return:
+        """
+
+        return [20 * np.log10(val) for val in self.all_SmaxNppnotouchR]
+
+    @property
+    def all_SminNpptouchR_dB(self) -> list:
+        """
+        (using in Huawei quick test)
+        Using min signal from touch raw data as signal, and peak-peak noise in touch raw data at touched node as noise
+        :return: list of SNR [node1 node2 ...]
+        """
+
+        return [20 * np.log10(val) for val in self.all_SminNpptouchR]
+
+    @property
+    def all_SminNppnotouchR_dB(self) -> list:
+        """
+        (using in Huawei SNppR test)
+        Using min signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
+        :return: list of SNR [node1 node2 ...]
+        """
+
+        return [20 * np.log10(val) for val in self.all_SminNppnotouchR]
+
+    @property
+    def all_SmeanNppnotouchR_dB(self) -> list:
+        """
+        (using in Huawei SNppR test)
+        Using mean signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
+        :return: list of SNR [node1 node2 ...]
+        """
+
+        return [20 * np.log10(val) for val in self.all_SmeanNppnotouchR]
+
+    @property
     def all_SmeanNrmsR_dB(self):
 
         return [20 * np.log10(val) for val in self.all_SmeanNrmsR]
@@ -349,35 +382,40 @@ class AnalyseData:
             _, y_node, x_node = TouchFrame.mct_signal_position
             signal = TouchFrame.mct_signal_min
             noise = self.mct_noise_ave_grid[y_node][x_node]
-            SminNaveR = signal/noise
+            SminNaveR = signal / noise
             ret.append(SminNaveR)
         return ret
 
     @property
-    def all_SminNaveR_dB(self):
+    def all_SminNaveR_dB(self) -> list:
+        """
+        calculate SNR using min signal and average noise in touch raw data
+        :return: list of SNR [TouchFrame1, TouchFrame2, ...]
+        """
+
         return [20 * np.log10(val) for val in self.all_SminNaveR]
 
     # ********************************************************
     # ***********SCT ROW Field *******************************
     # ********************************************************
     @property
-    def sct_row_noise_ave_line(self):
+    def sct_row_noise_ave_line(self) -> np.ndarray:
         return np.abs(self.NoTouchFrame.sct_row_mean)
 
     @property
-    def sct_row_noise_p2p_line(self):
+    def sct_row_noise_p2p_line(self) -> np.ndarray:
         return self.NoTouchFrame.sct_row_p2p
 
     @property
-    def sct_row_p2p_max(self):
+    def sct_row_p2p_max(self) -> np.ndarray:
         return self.NoTouchFrame.sct_row_p2p.max()
 
     @property
-    def sct_row_p2p_mean(self):
+    def sct_row_p2p_mean(self) -> np.ndarray:
         return self.NoTouchFrame.sct_row_p2p.mean()
 
     @property
-    def sct_row_p2p_min(self):
+    def sct_row_p2p_min(self) -> np.ndarray:
         return self.NoTouchFrame.sct_row_p2p.min()
 
     # ********************************************************
@@ -385,23 +423,23 @@ class AnalyseData:
     # ********************************************************
 
     @property
-    def sct_col_noise_ave_line(self):
+    def sct_col_noise_ave_line(self) -> np.ndarray:
         return np.abs(self.NoTouchFrame.sct_col_mean)
 
     @property
-    def sct_col_noise_p2p_line(self):
+    def sct_col_noise_p2p_line(self) -> np.ndarray:
         return self.NoTouchFrame.sct_col_p2p
 
     @property
-    def sct_col_p2p_max(self):
+    def sct_col_p2p_max(self) -> np.ndarray:
         return self.NoTouchFrame.sct_col_p2p.max()
 
     @property
-    def sct_col_p2p_mean(self):
+    def sct_col_p2p_mean(self) -> np.ndarray:
         return self.NoTouchFrame.sct_col_p2p.mean()
 
     @property
-    def sct_col_p2p_min(self):
+    def sct_col_p2p_min(self) -> np.ndarray:
         return self.NoTouchFrame.sct_col_p2p.min()
 
     # ********************************************************
@@ -409,7 +447,7 @@ class AnalyseData:
     # ********************************************************
 
     @property
-    def all_sct_touched_position(self):
+    def all_sct_touched_position(self) -> list:
         """
         return the position of max value from all frames as touch node position
         :return: list node [[node1_x, node1_y] [node2_x node2_y] ...]
@@ -428,7 +466,7 @@ class AnalyseData:
         return [ret_row, ret_col]
 
     @property
-    def all_sct_noise_p2p_notouch_node(self):
+    def all_sct_noise_p2p_notouch_node(self) -> list:
         """
         The noise is taken from no touch peak-peak grid data at touched position
         :return: list node [node1 node2 ...]
@@ -447,7 +485,7 @@ class AnalyseData:
         return [ret_row, ret_col]
 
     @property
-    def all_sct_noise_ave_notouch_node(self):
+    def all_sct_noise_ave_notouch_node(self) -> list:
         """
         The noise is taken from no touch average grid data at touched position
         :return: list node [node1 node2 ...]
@@ -466,7 +504,7 @@ class AnalyseData:
         return [ret_row, ret_col]
 
     @property
-    def all_sct_noise_p2p_touch_node(self):
+    def all_sct_noise_p2p_touch_node(self) -> list:
         """
         The noise is taken from touch peak-peak grid data at touched position
         :return: list node [node1 node2 ...]
@@ -485,7 +523,7 @@ class AnalyseData:
         return [ret_row, ret_col]
 
     @property
-    def all_sct_noise_rms_touch(self):
+    def all_sct_noise_rms_touch(self) -> list:
         """
         The noise is taken from rms noise (in touch raw data) grid data at touched position
         :return: list node [node1 node2 ...]
@@ -504,25 +542,25 @@ class AnalyseData:
         return [ret_row, ret_col]
 
     @property
-    def all_sct_signal_max(self):
+    def all_sct_signal_max(self) -> list:
         ret_row = [TouchData.sct_row_signal_max for TouchData in self.TouchFrameSets]
         ret_col = [TouchData.sct_col_signal_max for TouchData in self.TouchFrameSets]
         return [ret_row, ret_col]
 
     @property
-    def all_sct_signal_min(self):
+    def all_sct_signal_min(self) -> list:
         ret_row = [TouchData.sct_row_signal_min for TouchData in self.TouchFrameSets]
         ret_col = [TouchData.sct_col_signal_min for TouchData in self.TouchFrameSets]
         return [ret_row, ret_col]
 
     @property
-    def all_sct_signal_mean(self):
+    def all_sct_signal_mean(self) -> list:
         ret_row = [TouchData.sct_row_signal_mean for TouchData in self.TouchFrameSets]
         ret_col = [TouchData.sct_col_signal_mean for TouchData in self.TouchFrameSets]
         return [ret_row, ret_col]
 
     @property
-    def all_sct_pos_noise_line(self):
+    def all_sct_pos_noise_line(self) -> list:
         ret_row = []
         ret_col = []
         for TouchFrame in self.TouchFrameSets:
@@ -530,10 +568,10 @@ class AnalyseData:
             ret_col.append(TouchFrame.sct_col_positive_noise)
         ret_row = np.array(ret_row)
         ret_col = np.array(ret_col)
-        return [np.nanmax(ret_row, axis=0),np.nanmax(ret_col, axis=0)]
+        return [np.nanmax(ret_row, axis=0), np.nanmax(ret_col, axis=0)]
 
     @property
-    def all_sct_neg_noise_line(self):
+    def all_sct_neg_noise_line(self) -> list:
         ret_row = []
         ret_col = []
         for TouchFrame in self.TouchFrameSets:
@@ -544,7 +582,7 @@ class AnalyseData:
         return [np.nanmin(ret_row, axis=0), np.nanmin(ret_col, axis=0)]
 
     @property
-    def all_sct_SminNppnotouchR(self):
+    def all_sct_SminNppnotouchR(self) -> list:
         """
         (using in Huawei SNppR)
         Using min signal from touch raw data as signal, and peak-peak noise in no touch raw data at touched node as noise
@@ -748,8 +786,8 @@ class AnalyseData:
         ret_col = [20 * np.log10(val) for val in self.all_sct_SminNaveR[1]]
         return [ret_row, ret_col]
 
-    def BOE_snr_summary(self):
-        ret = {"Vendor": "BOE"}
+    def boe_snr_summary(self):
+        ret = {"Customer": "BOE"}
         if self.NoTouchFrame.mct_grid is not None:
             min_SmaxNppfullscreenR_dB = min(self.all_SmaxNppfullscreenR_dB)
             min_SmaxNppfullscreenR_dB_index = self.all_SmaxNppfullscreenR_dB.index(
@@ -761,9 +799,9 @@ class AnalyseData:
                     "touched node": self.all_touched_position,
                     "noise_p2p_fullscreen": [self.mct_noise_p2p_max] * len(self.TouchFrameSets),
                     "noise_p2p_notouch": self.all_mct_noise_p2p_notouch_node,
-                    "noise_rms_touch": np.round(self.all_mct_noise_rms_touch,2),
+                    "noise_rms_touch": np.round(self.all_mct_noise_rms_touch, 2),
                     "signal_max": self.all_mct_signal_max,
-                    "signal_mean": [round(val,2) for val in self.all_mct_signal_mean],
+                    "signal_mean": [round(val, 2) for val in self.all_mct_signal_mean],
                     "SmaxNppmotouchR": self.all_SmaxNppnotouchR,
                     "SmaxNppnotouchR_dB": self.all_SmaxNppnotouchR_dB,
                     "SmaxNppfullscreenR": self.all_SmaxNppfullscreenR,
@@ -795,9 +833,9 @@ class AnalyseData:
                     "touched node": self.all_sct_touched_position[0],
                     "noise_p2p_fullscreen": [self.sct_row_p2p_max] * len(self.TouchFrameSets),
                     "noise_p2p_notouch": self.all_sct_noise_p2p_notouch_node[0],
-                    "noise_rms_touch": np.round(self.all_sct_noise_rms_touch[0],2),
+                    "noise_rms_touch": np.round(self.all_sct_noise_rms_touch[0], 2),
                     "signal_max": self.all_sct_signal_max[0],
-                    "signal_mean": [round(val,2) for val in self.all_sct_signal_mean[0]],
+                    "signal_mean": [round(val, 2) for val in self.all_sct_signal_mean[0]],
                     "SmaxNppmotouchR": self.all_sct_SmaxNppnotouchR[0],
                     "SmaxNppnotouchR_dB": self.all_sct_SmaxNppnotouchR_dB[0],
                     "SmaxNppfullscreenR": self.all_sct_SmaxNppfullscreenR[0],
@@ -829,9 +867,9 @@ class AnalyseData:
                     "touched node": self.all_sct_touched_position[1],
                     "noise_p2p_fullscreen": [self.sct_col_p2p_max] * len(self.TouchFrameSets),
                     "noise_p2p_notouch": self.all_sct_noise_p2p_notouch_node[1],
-                    "noise_rms_touch": [round(val,2) for val in self.all_sct_noise_rms_touch[1]],
+                    "noise_rms_touch": [round(val, 2) for val in self.all_sct_noise_rms_touch[1]],
                     "signal_max": self.all_sct_signal_max[1],
-                    "signal_mean": [round(val,2) for val in self.all_sct_signal_mean[1]],
+                    "signal_mean": [round(val, 2) for val in self.all_sct_signal_mean[1]],
                     "SmaxNppnotouchR": self.all_sct_SmaxNppnotouchR[1],
                     "SmaxNppnotouchR_dB": self.all_sct_SmaxNppnotouchR_dB[1],
                     "SmaxNppfullscreenR": self.all_sct_SmaxNppfullscreenR[1],
@@ -852,8 +890,8 @@ class AnalyseData:
 
         return ret
 
-    def VNX_snr_summary(self):
-        ret = {"Vendor": "Visionox"}
+    def vnx_snr_summary(self):
+        ret = {"Customer": "Visionox"}
         if self.NoTouchFrame.mct_grid is not None:
             min_SmeanNrmsR_dB = min(self.all_SmeanNrmsR_dB)
             min_SmeanNrmsR_dB_index = self.all_SmeanNrmsR_dB.index(min(self.all_SmeanNrmsR_dB))
@@ -913,13 +951,14 @@ class AnalyseData:
 
         return ret
 
-    def HW_quick_snr_summary(self):
-        '''
+    def hw_quick_snr_summary(self):
+        """
         huawei quick test only need touch raw data!!
         only peak-peak snr is calculated!!
         :return:
-        '''
-        ret = {"Vendor": "Huawei_quick"}
+        """
+
+        ret = {"Customer": "Huawei_quick"}
 
         if self.NoTouchFrame.mct_grid is not None:
             min_SminNpptouch_dB = min(self.all_SminNpptouchR_dB)
@@ -981,13 +1020,13 @@ class AnalyseData:
             ret["sct_col_summary"] = sct_col_ret
         return ret
 
-    def HW_thp_afe_snr_summary(self):
+    def hw_thp_afe_snr_summary(self):
         '''
         huawei thp afe test using no touch data as the source of noise!!
         only peak-peak snr is calculated!!
         :return:
         '''
-        ret = {"Vendor": "Huawei_THP_AFE"}
+        ret = {"Customer": "Huawei_THP_AFE"}
 
         if self.NoTouchFrame.mct_grid is not None:
             min_SminNppnotouch_dB = min(self.all_SminNppnotouchR_dB)
@@ -1042,39 +1081,39 @@ class AnalyseData:
             }
             ret["sct_row_summary"] = sct_row_ret
 
-            if self.NoTouchFrame.sct_col is not None:
-                min_sct_col_SminNppnotouch_dB = min(self.all_sct_SminNppnotouchR_dB[1])
-                min_sct_col_SminNppnotouch_dB_index = self.all_sct_SminNppnotouchR_dB[1].index(
-                    min(self.all_sct_SminNppnotouchR_dB[1]))
-                min_sct_col_SminNaveR_dB = min(self.all_sct_SminNaveR_dB[1])
-                min_sct_col_SminNaveR_dB_index = self.all_sct_SminNaveR_dB[1].index(
-                    min(self.all_sct_SminNaveR_dB[1]))
-                sct_col_ret = {
-                    "snr_sct_col_summary": {
-                        "touched node": self.all_sct_touched_position[1],
-                        "noise_p2p_notouch": self.all_sct_noise_p2p_notouch_node[1],
-                        "noise_ave_notouch": self.all_sct_noise_ave_notouch_node[1],
-                        "signal_min": self.all_sct_signal_min[1],
-                        "SminNppnotouchR": self.all_sct_SminNppnotouchR[1],
-                        "SminNppnotouchR_dB": self.all_sct_SminNppnotouchR_dB[1],
-                        "SminNaveR": self.all_sct_SminNaveR[1],
-                        "SminNaveR_dB": self.all_sct_SminNaveR_dB[1]
-                    },
-                    "final_results": {
-                        "min_sct_col_SminNppnotouch_dB": "{:.2f}".format(min_sct_col_SminNppnotouch_dB),
-                        "Position_P2P": f"Touch {min_sct_col_SminNppnotouch_dB_index + 1}",
-                        "min_sct_col_SminNaveR_dB": "{:.2f}".format(min_sct_col_SminNaveR_dB),
-                        "Position_AVE": f"Touch {min_sct_col_SminNaveR_dB_index + 1}"
-                    }
+        if self.NoTouchFrame.sct_col is not None:
+            min_sct_col_SminNppnotouch_dB = min(self.all_sct_SminNppnotouchR_dB[1])
+            min_sct_col_SminNppnotouch_dB_index = self.all_sct_SminNppnotouchR_dB[1].index(
+                min(self.all_sct_SminNppnotouchR_dB[1]))
+            min_sct_col_SminNaveR_dB = min(self.all_sct_SminNaveR_dB[1])
+            min_sct_col_SminNaveR_dB_index = self.all_sct_SminNaveR_dB[1].index(
+                min(self.all_sct_SminNaveR_dB[1]))
+            sct_col_ret = {
+                "snr_sct_col_summary": {
+                    "touched node": self.all_sct_touched_position[1],
+                    "noise_p2p_notouch": self.all_sct_noise_p2p_notouch_node[1],
+                    "noise_ave_notouch": self.all_sct_noise_ave_notouch_node[1],
+                    "signal_min": self.all_sct_signal_min[1],
+                    "SminNppnotouchR": self.all_sct_SminNppnotouchR[1],
+                    "SminNppnotouchR_dB": self.all_sct_SminNppnotouchR_dB[1],
+                    "SminNaveR": self.all_sct_SminNaveR[1],
+                    "SminNaveR_dB": self.all_sct_SminNaveR_dB[1]
+                },
+                "final_results": {
+                    "min_sct_col_SminNppnotouch_dB": "{:.2f}".format(min_sct_col_SminNppnotouch_dB),
+                    "Position_P2P": f"Touch {min_sct_col_SminNppnotouch_dB_index + 1}",
+                    "min_sct_col_SminNaveR_dB": "{:.2f}".format(min_sct_col_SminNaveR_dB),
+                    "Position_AVE": f"Touch {min_sct_col_SminNaveR_dB_index + 1}"
                 }
-                ret["sct_col_summary"] = sct_col_ret
+            }
+            ret["sct_col_summary"] = sct_col_ret
         return ret
 
     def write_out_csv(self, result_dict):
 
         row = ["Touch {}".format(idx + 1) for idx in range(len(self.TouchFrameSets))]
         output_path = os.path.join(self.output_folder,
-                                   result_dict["Vendor"] + "_" + self.pattern + "_output_info.csv")
+                                   result_dict["Customer"] + "_" + self.pattern + "_output_info.csv")
 
         with open(output_path, 'w', newline='') as f:
 
@@ -1140,21 +1179,18 @@ class AnalyseData:
             touch_out_path = os.path.join(self.output_folder,
                                           self.pattern + "_touch_num_{}.csv".format(int(idx)))
             tmp_df = TouchFrame.df_raw_data
-            tmp_df = tmp_df.drop(columns = ['cycle', 'duration (msec)'])
+            tmp_df = tmp_df.drop(columns=['cycle', 'duration (msec)'])
             if TouchFrame.signal_low_thr is not None:
-                _,row_idx, col_idx = TouchFrame.mct_signal_position
+                _, row_idx, col_idx = TouchFrame.mct_signal_position
                 signal_col_name = tmp_df.columns[tmp_df.columns.str.contains(f'\[{row_idx}\]\[{col_idx}\]', regex=True)]
                 signal_col_name = signal_col_name.values[0]
-                tmp_df = tmp_df[(tmp_df[signal_col_name] <= TouchFrame.signal_high_thr) & (tmp_df[signal_col_name] >= TouchFrame.signal_low_thr)].reset_index(drop=True)
+                tmp_df = tmp_df[(tmp_df[signal_col_name] <= TouchFrame.signal_high_thr) & (
+                        tmp_df[signal_col_name] >= TouchFrame.signal_low_thr)].reset_index(drop=True)
             tmp_df.to_csv(touch_out_path)
-
 
             pass
 
-
-
     def write_out_decode_mct_csv(self):
-
 
         # write out No Touch grid mct raw data
         notouch_out_path = os.path.join(self.output_folder, self.pattern + "_mct_grid_rawdata_NoTouch.csv")
@@ -1164,7 +1200,8 @@ class AnalyseData:
             if self.NoTouchFrame.mct_grid is not None:
                 all_mct_data = self.NoTouchFrame.mct_grid
             else:
-                all_mct_data = np.zeros([self.NoTouchFrame.sct_row.shape[0],self.NoTouchFrame.sct_row.shape[1],self.NoTouchFrame.sct_col.shape[1]])
+                all_mct_data = np.zeros([self.NoTouchFrame.sct_row.shape[0], self.NoTouchFrame.sct_row.shape[1],
+                                         self.NoTouchFrame.sct_col.shape[1]])
             for idx, mct_grid in enumerate(all_mct_data):
                 # write a row to the csv file
                 writer.writerow(["Frame {}:".format(idx + 1)])
@@ -1175,7 +1212,7 @@ class AnalyseData:
                     li = list(line)
                     li.append(f"Rx {line_no}")
                     if self.NoTouchFrame.sct_row is not None:
-                        li.extend(["\n",f"Row {line_no}",self.NoTouchFrame.sct_row[idx][line_no]])
+                        li.extend(["\n", f"Row {line_no}", self.NoTouchFrame.sct_row[idx][line_no]])
                     writer.writerow(li)
 
                 if self.NoTouchFrame.sct_col is not None:
@@ -1195,7 +1232,8 @@ class AnalyseData:
                 if TouchFrame.mct_grid is not None:
                     all_mct_data = TouchFrame.mct_grid
                 else:
-                    all_mct_data = np.zeros([TouchFrame.sct_row.shape[0],TouchFrame.sct_row.shape[1],TouchFrame.sct_col.shape[1]])
+                    all_mct_data = np.zeros(
+                        [TouchFrame.sct_row.shape[0], TouchFrame.sct_row.shape[1], TouchFrame.sct_col.shape[1]])
                 for idx, mct_grid in enumerate(all_mct_data):
                     # write a row to the csv file
                     writer.writerow(["Frame {}:".format(idx + 1)])
@@ -1206,7 +1244,7 @@ class AnalyseData:
                         li = list(line)
                         li.append(f"Rx {line_no}")
                         if TouchFrame.sct_row is not None:
-                            li.extend(["\n",f"Row {line_no}", TouchFrame.sct_row[idx][line_no]])
+                            li.extend(["\n", f"Row {line_no}", TouchFrame.sct_row[idx][line_no]])
                         writer.writerow(li)
 
                     if TouchFrame.sct_col is not None:
@@ -1360,7 +1398,7 @@ class AnalyseData:
         # plt.show()
         signal_row_mean = np.mean(self.all_sct_signal_mean[0])
         signal_col_mean = np.mean(self.all_sct_signal_mean[1])
-        fig, ax = plt.subplots(1, 2, sharey=False, sharex=False, figsize=self.standard_width_picture, dpi=110)
+        fig, ax = plt.subplots(1, 2, figsize=self.standard_width_picture, dpi=110)
         ax[0].vlines(signal_row_mean, ymin=-2, ymax=self.row_num, colors='grey', linestyle=':', label='Target Value')
         ax[0].vlines([signal_row_mean * 1.2, signal_row_mean * 0.8],
                      ymin=-2, ymax=self.row_num, colors='grey', linestyle='-.', label='Limits')
@@ -1373,7 +1411,7 @@ class AnalyseData:
         touch_data_row = np.array(touch_data_row).astype(int)
         touch_data_row = touch_data_row.max(axis=0)
         df_row = pd.DataFrame({
-            "value":touch_data_row,
+            "value": touch_data_row,
             "idx": [f"{i}" for i in range(len(touch_data_row))]
         })
         sns.barplot(data=df_row, x="value", y="idx", color='deepskyblue', ax=ax[0])
@@ -1406,9 +1444,11 @@ class AnalyseData:
         ax[1].set_xticks(range(0, self.col_num))
 
         fig.suptitle('Line All Touch Signal \nRow Mean=%.0f; Row Min=%.0f; Row Max=%.0f \nCol Mean=%.0f; Col '
-                     'Min=%.0f; Col Max=%.0f'  % (
-            np.mean(self.all_sct_signal_max[0]), np.min(self.all_sct_signal_min[0]), np.max(self.all_sct_signal_mean[0]),
-            np.mean(self.all_sct_signal_max[1]), np.min(self.all_sct_signal_min[1]), np.max(self.all_sct_signal_mean[1])))
+                     'Min=%.0f; Col Max=%.0f' % (
+                         np.mean(self.all_sct_signal_max[0]), np.min(self.all_sct_signal_min[0]),
+                         np.max(self.all_sct_signal_mean[0]),
+                         np.mean(self.all_sct_signal_max[1]), np.min(self.all_sct_signal_min[1]),
+                         np.max(self.all_sct_signal_mean[1])))
 
         plt.tight_layout()
 
@@ -1417,12 +1457,11 @@ class AnalyseData:
     def plot_sct_positive_noise(self):
         sns.set_style('darkgrid')
 
-
         fig, ax = plt.subplots(1, 2, sharey=False, sharex=False, figsize=self.standard_width_picture, dpi=110)
 
         touch_data_row = self.all_sct_pos_noise_line[0]
         df_row = pd.DataFrame({
-            "value":touch_data_row,
+            "value": touch_data_row,
             "idx": [f"{i}" for i in range(len(touch_data_row))]
         })
         sns.barplot(data=df_row, x="value", y="idx", color='deepskyblue', ax=ax[0])
@@ -1431,7 +1470,6 @@ class AnalyseData:
         # ax[0].set_ylim(0, plot_axis_limit)
         # ax[0].set_xlim(-1, self.Columns)
         ax[0].set_yticks(range(0, self.row_num))
-
 
         touch_data_col = self.all_sct_pos_noise_line[1]
 
@@ -1447,9 +1485,11 @@ class AnalyseData:
         ax[1].set_xticks(range(0, self.col_num))
 
         fig.suptitle('Line All Touch Positive Noise \nRow Mean=%.0f; Row Min=%.0f; Row Max=%.0f \nCol Mean=%.0f; Col '
-                     'Min=%.0f; Col Max=%.0f'  % (
-            np.mean(self.all_sct_pos_noise_line[0]), np.min(self.all_sct_pos_noise_line[0]), np.max(self.all_sct_pos_noise_line[0]),
-            np.mean(self.all_sct_pos_noise_line[1]), np.min(self.all_sct_pos_noise_line[1]), np.max(self.all_sct_pos_noise_line[1])))
+                     'Min=%.0f; Col Max=%.0f' % (
+                         np.mean(self.all_sct_pos_noise_line[0]), np.min(self.all_sct_pos_noise_line[0]),
+                         np.max(self.all_sct_pos_noise_line[0]),
+                         np.mean(self.all_sct_pos_noise_line[1]), np.min(self.all_sct_pos_noise_line[1]),
+                         np.max(self.all_sct_pos_noise_line[1])))
 
         plt.tight_layout()
 
@@ -1458,12 +1498,11 @@ class AnalyseData:
     def plot_sct_negative_noise(self):
         sns.set_style('darkgrid')
 
-
         fig, ax = plt.subplots(1, 2, sharey=False, sharex=False, figsize=self.standard_width_picture, dpi=110)
 
         touch_data_row = self.all_sct_neg_noise_line[0]
         df_row = pd.DataFrame({
-            "value":touch_data_row,
+            "value": touch_data_row,
             "idx": [f"{i}" for i in range(len(touch_data_row))]
         })
         sns.barplot(data=df_row, x="value", y="idx", color='deepskyblue', ax=ax[0])
@@ -1472,7 +1511,6 @@ class AnalyseData:
         # ax[0].set_ylim(0, plot_axis_limit)
         # ax[0].set_xlim(-1, self.Columns)
         ax[0].set_yticks(range(0, self.row_num))
-
 
         touch_data_col = self.all_sct_neg_noise_line[1]
 
@@ -1488,9 +1526,11 @@ class AnalyseData:
         ax[1].set_xticks(range(0, self.col_num))
 
         fig.suptitle('Line All Touch Negative Noise \nRow Mean=%.0f; Row Min=%.0f; Row Max=%.0f \nCol Mean=%.0f; Col '
-                     'Min=%.0f; Col Max=%.0f'  % (
-            np.mean(self.all_sct_neg_noise_line[0]), np.min(self.all_sct_neg_noise_line[0]), np.max(self.all_sct_neg_noise_line[0]),
-            np.mean(self.all_sct_neg_noise_line[1]), np.min(self.all_sct_neg_noise_line[1]), np.max(self.all_sct_neg_noise_line[1])))
+                     'Min=%.0f; Col Max=%.0f' % (
+                         np.mean(self.all_sct_neg_noise_line[0]), np.min(self.all_sct_neg_noise_line[0]),
+                         np.max(self.all_sct_neg_noise_line[0]),
+                         np.mean(self.all_sct_neg_noise_line[1]), np.min(self.all_sct_neg_noise_line[1]),
+                         np.max(self.all_sct_neg_noise_line[1])))
 
         plt.tight_layout()
 
@@ -1537,6 +1577,7 @@ class AnalyseData:
     #         touch_sig = TouchFrame.mct_grid_mean
     #         print(calc_mut_phase_compensation(touch_sig, ref_sig))
 
+
 def get_touched_num(folder, prefix):
     """
 
@@ -1552,6 +1593,7 @@ def get_touched_num(folder, prefix):
 
     return ret
 
+
 def write_out_final_result_csv(out_path, header, data):
     # write out No Touch grid mct raw data
     # out_path = os.path.join(folder, "result_summary.csv")
@@ -1564,6 +1606,3 @@ def write_out_final_result_csv(out_path, header, data):
             writer.writerow(li)
 
     f.close()
-
-
-

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication,QSizePolicy,QVBoxLayout,
 from PySide6.QtCharts import (QBarCategoryAxis, QBarSet, QChart, QChartView,
                               QStackedBarSeries, QValueAxis)
 from PySide6 import QtWidgets
-from lib.share import sdm
+from lib.share import ShareDataManager
 
 class Func_Plot2DStackBar(QWidget):
     def __init__(self):
@@ -24,8 +24,8 @@ class Func_Plot2DStackBar(QWidget):
 
         self.rx_Low = QBarSet("Min")
         self.rx_High = QBarSet("Max")
-        Rx_low_data = sdm.current_sct_row_min.flatten()
-        Rx_high_data = sdm.current_sct_row_max.flatten()
+        Rx_low_data = ShareDataManager.current_row_data_min.flatten()
+        Rx_high_data = ShareDataManager.current_row_data_max.flatten()
 
         self.rx_Low.append(list(Rx_low_data))
         self.rx_High.append(list(Rx_high_data))
@@ -60,8 +60,8 @@ class Func_Plot2DStackBar(QWidget):
 
         self.tx_Low = QBarSet("Min")
         self.tx_High = QBarSet("Max")
-        tx_low_data = sdm.current_sct_col_min.flatten()
-        tx_high_data = sdm.current_sct_col_max.flatten()
+        tx_low_data = ShareDataManager.current_col_data_min.flatten()
+        tx_high_data = ShareDataManager.current_col_data_max.flatten()
 
         self.tx_Low.append(list(tx_low_data))
         self.tx_High.append(list(tx_high_data))
@@ -107,7 +107,7 @@ class Func_Plot2DStackBar(QWidget):
                                                QtWidgets.QMessageBox.No)
         # 判断返回结果处理相应事项
         if reply == QtWidgets.QMessageBox.Yes:
-            del sdm.subWinTable[str(Func_Plot2DStackBar)]
+            del ShareDataManager.subWinTable[str(Func_Plot2DStackBar)]
             event.accept()
         else:
             event.ignore()

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QHBoxLayout,
 from lib.surfacegraph  import SurfaceGraph
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from lib.share import sdm
+from lib.share import ShareDataManager
 
 THEMES = ["Qt", "Primary Colors", "Digia", "Stone Moss", "Army Blue", "Retro", "Ebony", "Isabelle"]
 
@@ -231,7 +231,7 @@ class Func_Plot3Dsurface(QtWidgets.QWidget):
                                                QtWidgets.QMessageBox.No)
         # 判断返回结果处理相应事项
         if reply == QtWidgets.QMessageBox.Yes:
-            del sdm.subWinTable[str(Func_Plot3Dsurface)]
+            del ShareDataManager.subWinTable[str(Func_Plot3Dsurface)]
             event.accept()
         else:
             event.ignore()

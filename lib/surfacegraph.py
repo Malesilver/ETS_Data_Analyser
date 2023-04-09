@@ -8,7 +8,7 @@ from PySide6.QtDataVisualization import (Q3DTheme, QAbstract3DGraph,
 from PySide6.QtGui import QImage, QLinearGradient, QVector3D,QColor
 from PySide6.QtWidgets import QSlider, QMessageBox
 import numpy as np
-from lib.share import sdm
+from lib.share import ShareDataManager
 
 
 
@@ -24,9 +24,9 @@ class SurfaceGraph(QObject):
 
         self.m_sqrtSinProxy = QSurfaceDataProxy()
         self.m_sqrtSinSeries = QSurface3DSeries(self.m_sqrtSinProxy)
-        if sdm.current_mct_grid is not None:
+        if ShareDataManager.current_grid_data is not None:
 
-            self.fillSqrtSinProxy(sdm.current_mct_grid)
+            self.fillSqrtSinProxy(ShareDataManager.current_grid_data)
         else:
             self.fillSqrtSinProxy(np.zeros((20,40)))
 
@@ -67,8 +67,8 @@ class SurfaceGraph(QObject):
 
     def enableSqrtSinModel(self, enable):
         if enable:
-            sampleCountX = sdm.colum_num
-            sampleCountZ = sdm.row_num
+            sampleCountX = ShareDataManager.colum_num
+            sampleCountZ = ShareDataManager.row_num
             self.m_sqrtSinSeries.setDrawMode(QSurface3DSeries.DrawSurfaceAndWireframe)
             self.m_sqrtSinSeries.setFlatShadingEnabled(True)
             self.m_sqrtSinSeries.setItemLabelFormat("(@xLabel, @zLabel): @yLabel")
@@ -76,9 +76,9 @@ class SurfaceGraph(QObject):
 
             self.m_graph.axisX().setLabelFormat("Tx %d")
             self.m_graph.axisZ().setLabelFormat("Rx %d")
-            self.m_graph.axisX().setRange(0, sdm.colum_num)
+            self.m_graph.axisX().setRange(0, ShareDataManager.colum_num)
             # self.m_graph.axisY().setRange(0.0, 100.0)
-            self.m_graph.axisZ().setRange(0, sdm.row_num)
+            self.m_graph.axisZ().setRange(0, ShareDataManager.row_num)
             self.m_graph.axisX().setLabelAutoRotation(30)
             self.m_graph.axisY().setLabelAutoRotation(90)
             self.m_graph.axisZ().setLabelAutoRotation(30)

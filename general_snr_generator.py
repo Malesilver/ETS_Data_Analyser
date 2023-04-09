@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QMessageBox, QTableWidgetItem,QFileDialog
+from PySide6.QtWidgets import QListWidgetItem, QMessageBox, QTableWidgetItem, QFileDialog
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import Qt
 import os
@@ -6,121 +6,106 @@ from lib.share import SI, MySignals
 from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv
 from threading import Thread
 import json
+
 gms = MySignals()
 
 
-
-class Win_HW_THP_SNRGenerator:
+class WinGeneralSNRGenerator:
     CFG_ITEMS = [
         'Dataset Path', 'touch file prefix', 'notouch file prefix',
         'start idx notouch', 'end idx notouch', 'start idx touch', 'end idx touch'
     ]
 
     def __init__(self):
-        self.ui = QUiLoader().load('HW_THP_snr_generator.ui')
-        self.Pattern = {'White': self.ui.cBoxWhite,
-                        'Black': self.ui.cBoxBlack,
-                        'Red': self.ui.cBoxRed,
-                        'Blue': self.ui.cBoxBlue,
-                        'Green': self.ui.cBoxGreen,
-                        'Col': self.ui.cBoxCol,
-                        'Inverse_Col': self.ui.cBoxColInv,
-                        'ColGP': self.ui.cBoxCol_GP,
-                        'Inverse_ColGP': self.ui.cBoxCol_GPInv,
-                        'Row': self.ui.cBoxRow,
-                        'Inverse_Row': self.ui.cBoxRowInv,
-                        'Dot': self.ui.cBoxDot,
-                        'Inverse_Dot': self.ui.cBoxDotInv,
-                        'DoubleDot': self.ui.cBoxDouble_dot,
-                        'Inverse_DoubleDot': self.ui.cBoxDouble_dotInv,
-                        'Vertical': self.ui.cBoxVertical,
-                        'Horizontal': self.ui.cBoxHorizontal}
+        self.ui = QUiLoader().load('General_snr_generator.ui')
+        self.customer_list = {  'BOE': self.ui.cBoxBOE,
+                                'HW_QUICK': self.ui.cBoxHW_quick,
+                                'HW_THP': self.ui.cBoxHW_thp,
+                                'VNX': self.ui.cBoxVNX,
+                                'CSOT': self.ui.cBoxCSOT,
+                                'LENOVO': self.ui.cBoxLenovo,
+                                }
+
+        self.isFullTouch = True
 
         self.loadCfgToTable()
         self.ui.btnClear.clicked.connect(self.onClearLog)
         self.ui.btnGenerateSNR.clicked.connect(self.onGenerateSNRReport)
         self.ui.btnReset.clicked.connect(self.initSetting)
 
-        self.ui.cBoxWhite.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxBlack.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxRed.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxBlue.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxGreen.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxCol.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxColInv.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxCol_GP.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxCol_GPInv.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxRow.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxRowInv.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxDot.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxDotInv.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxDouble_dot.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxDouble_dotInv.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxVertical.stateChanged.connect(self.changePatternState)
-        self.ui.cBoxHorizontal.stateChanged.connect(self.changePatternState)
+        self.ui.cBoxBOE.stateChanged.connect(self.changeCustomerState)
+        self.ui.cBoxHW_quick.stateChanged.connect(self.changeCustomerState)
+        self.ui.cBoxHW_thp.stateChanged.connect(self.changeCustomerState)
+        self.ui.cBoxVNX.stateChanged.connect(self.changeCustomerState)
+        self.ui.cBoxCSOT.stateChanged.connect(self.changeCustomerState)
+        self.ui.cBoxLenovo.stateChanged.connect(self.changeCustomerState)
 
         self.ui.tableCFG.cellChanged.connect(self.cfgItemChanged)
 
         self.ui.btnSelectFolder.clicked.connect(self._selectFolder)
 
+        self.ui.btnSwitch.clicked.connect(self.onSwitchMode)
+        self.ui.btnSwitch.setStyleSheet("background-color: lightgreen;")
 
         gms.log.connect(self.log)
-
-        # self.ui.cBoxHWQuick.setEnabled(False)
-        # self.ui.cBoxHWTHP.setEnabled(False)
 
         self.initSetting()
 
     def initSetting(self):
-        if SI.HW_THP_AFE_params.SNR_cfg.get('Dataset Path',None) is None:
+        if SI.General_params.SNR_cfg.get('Dataset Path', None) is None:
             QMessageBox.warning(
                 self.ui,
                 'Not Valid Path',
                 'Please select right Dataset folder!!!')
             return
-        path = SI.HW_THP_AFE_params.SNR_cfg['Dataset Path']
+        path = SI.General_params.SNR_cfg['Dataset Path']
         if not os.path.exists(path):
             return
-        folders = os.listdir(path)
-        folders = [folder.upper() for folder in folders]
-        print(folders)
-        print(self.Pattern.keys())
-        count = 0
-        SI.HW_THP_AFE_params.Patterns = []
+        folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path,name))]
 
-        # reset all btn
-        for key in self.Pattern.keys():
-            btn = self.Pattern[key]
+        SI.General_params.Patterns = folders
+
+        self.init_pattern_checklist()
+
+        # reset all customer button
+        for key in self.customer_list.keys():
+            btn = self.customer_list[key]
             btn.setChecked(False)
-            btn.setEnabled(False)
+            btn.setEnabled(True)
 
 
-        for key in self.Pattern.keys():
-            btn = self.Pattern[key]
-            if key.upper() in folders:
-                SI.HW_THP_AFE_params.Patterns.append(key)
-                btn.setEnabled(True)
-                btn.setChecked(True)
+    def init_pattern_checklist(self):
+        self.ui.listPattern.clear()
+        for pattern in SI.General_params.Patterns:
+            # create QListWidgetItem
+            item = QListWidgetItem(pattern)
+            # set checkable property
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            # set checked state to checked
+            item.setCheckState(Qt.Checked)
+            # add item to the list
+            self.ui.listPattern.addItem(item)
 
-                count += 1
-            else:
-                btn.setChecked(False)
-                btn.setEnabled(False)
-
-
-        if count == 0:
-            QMessageBox.warning(
-                self.ui,
-                'Not Valid Path',
-                'Please select right Dataset folder!!!')
-            return
+    def onSwitchMode(self):
+        if self.isFullTouch:
+            self.ui.btnSwitch.setText('SNR Active Stylus')
+            self.ui.label.setText('Click to switch Fulltouch')
+            # set button color to light red
+            self.ui.btnSwitch.setStyleSheet("background-color: lightcoral;")
+            self.isFullTouch = False
         else:
-            self.log(f"Already select Patterns: {SI.HW_THP_AFE_params.Patterns}")
+            self.ui.btnSwitch.setText('SNR Fulltouch')
+            self.ui.label.setText('Click to switch Active Stylus')
+            # set button color to light green
+            self.ui.btnSwitch.setStyleSheet("background-color: lightgreen;")
+            self.isFullTouch = True
+
+
     def _selectFolder(self):
         FileDirectory = QFileDialog.getExistingDirectory(self.ui, "Select Dataset")
         if FileDirectory is None:
             return
-        SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'] = FileDirectory
+        SI.General_params.SNR_cfg['Dataset Path'] = FileDirectory
 
         self.ui.lineFolder.setText(FileDirectory)
         self.ui.lineFolder.setEnabled(False)
@@ -128,28 +113,29 @@ class Win_HW_THP_SNRGenerator:
         table.setItem(0, 1, QTableWidgetItem(FileDirectory))
         self.initSetting()
 
-    def changePatternState(self):
+    def changeCustomerState(self):
 
-        for key in self.Pattern.keys():
-            btn = self.Pattern[key]
+        for key in self.customer_list.keys():
+            btn = self.customer_list[key]
             if btn.isEnabled():
-                if key not in SI.HW_THP_AFE_params.Patterns and btn.isChecked():
-                    SI.HW_THP_AFE_params.Patterns.append(key)
+                if key not in SI.General_params.customer_list and btn.isChecked():
+                    SI.General_params.customer_list.append(key)
+                    # sorted with string and number combo
+                    SI.General_params.customer_list = sorted(list(SI.General_params.customer_list), key=str.lower)
+                    gms.log.emit(
+                        f"Successful add customer: {key}. Current customers are: {SI.General_params.customer_list}")
+                elif key in SI.General_params.customer_list and not btn.isChecked():
+                    SI.General_params.customer_list.remove(key)
                     # todo sorted with string and number combo
-                    SI.HW_THP_AFE_params.Patterns = sorted(list(SI.HW_THP_AFE_params.Patterns), key=str.lower)
-                    gms.log.emit(f"Successful add pattern: {key}. Current patterns are: {SI.HW_THP_AFE_params.Patterns}")
-                elif key in SI.HW_THP_AFE_params.Patterns and not btn.isChecked():
-                    SI.HW_THP_AFE_params.Patterns.remove(key)
-                    # todo sorted with string and number combo
-                    SI.HW_THP_AFE_params.Patterns = sorted(list(SI.HW_THP_AFE_params.Patterns), key=str.lower)
-                    gms.log.emit(f"Delete pattern: {key}. Current patterns are: {SI.HW_THP_AFE_params.Patterns}")
+                    SI.General_params.customer_list = sorted(list(SI.General_params.customer_list), key=str.lower)
+                    gms.log.emit(f"Delete customer: {key}. Current customers are: {SI.General_params.customer_list}")
 
         # 加载配置文件到界面
+
     def _saveCfgFile(self):
 
-        with open('hw_thp_snr_cfg.json', 'w', encoding='utf8') as f:
-            json.dump(SI.HW_THP_AFE_params.SNR_cfg, f, ensure_ascii=False, indent=2)
-
+        with open('general_snr_cfg.json', 'w', encoding='utf8') as f:
+            json.dump(SI.General_params.SNR_cfg, f, ensure_ascii=False, indent=2)
 
     def loadCfgToTable(self):
 
@@ -164,7 +150,7 @@ class Win_HW_THP_SNRGenerator:
             item.setFlags(Qt.ItemIsEnabled)  # 参数名字段不允许修改
 
             # 参数值
-            table.setItem(idx, 1, QTableWidgetItem(SI.HW_THP_AFE_params.SNR_cfg.get(cfgName, '')))
+            table.setItem(idx, 1, QTableWidgetItem(SI.General_params.SNR_cfg.get(cfgName, '')))
 
     def cfgItemChanged(self, row, column):
         table = self.ui.tableCFG
@@ -173,12 +159,10 @@ class Win_HW_THP_SNRGenerator:
         cfgName = table.item(row, 0).text()
         cfgValue = table.item(row, column).text()
 
-        SI.HW_THP_AFE_params.SNR_cfg[cfgName] = cfgValue
+        SI.General_params.SNR_cfg[cfgName] = cfgValue
         self._saveCfgFile()
 
         self.log(f'{cfgName} : {cfgValue}')
-
-
 
     def onGenerateSNRReport(self):
 
@@ -188,50 +172,54 @@ class Win_HW_THP_SNRGenerator:
         HW_THP_AFE_results = []
 
         gms.log.emit("************ start SNR calculation *******************")
-        gms.log.emit(f"required patterns: {SI.HW_THP_AFE_params.Patterns}")
+        gms.log.emit(f"required patterns: {SI.General_params.Patterns}")
         gms.log.emit(
-            f"Number of selected frames for no touch log is: {int(SI.HW_THP_AFE_params.SNR_cfg['end idx notouch']) - int(SI.HW_THP_AFE_params.SNR_cfg['start idx notouch'])}")
+            f"Number of selected frames for no touch log is: {int(SI.General_params.SNR_cfg['end idx notouch']) - int(SI.General_params.SNR_cfg['start idx notouch'])}")
         gms.log.emit(
-            f"Number of selected frames for touch log is: {int(SI.HW_THP_AFE_params.SNR_cfg['end idx touch']) - int(SI.HW_THP_AFE_params.SNR_cfg['start idx touch'])}")
+            f"Number of selected frames for touch log is: {int(SI.General_params.SNR_cfg['end idx touch']) - int(SI.General_params.SNR_cfg['start idx touch'])}")
         gms.log.emit("*" * 80)
 
         def threadFun():
 
-            for pattern in SI.HW_THP_AFE_params.Patterns:
-
+            for pattern in SI.General_params.Patterns:
 
                 # modify rawdata paths: path format is **.edl.csv, i.e:
                 # notouch path "wo.edl.csv" -> prefix_notouch = "wo"
                 # touch path "wi5.edl.csv" -> prefix_touch = "wi"
-                prefix_notouch = SI.HW_THP_AFE_params.SNR_cfg['notouch file prefix']
-                prefix_touch = SI.HW_THP_AFE_params.SNR_cfg['touch file prefix']
+                prefix_notouch = SI.General_params.SNR_cfg['notouch file prefix']
+                prefix_touch = SI.General_params.SNR_cfg['touch file prefix']
 
-                if os.path.exists(os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern, "{}.edl.csv".format(prefix_notouch))):
-                    notouch_data_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern,
+                if os.path.exists(os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern,
+                                               "{}.edl.csv".format(prefix_notouch))):
+                    notouch_data_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern,
                                                      "{}.edl.csv".format(prefix_notouch))
-                    touch_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern, prefix_touch + "{}.edl.csv")
+                    touch_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern,
+                                              prefix_touch + "{}.edl.csv")
                 else:
-                    notouch_data_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern, "{}.csv".format(prefix_notouch))
-                    touch_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern, prefix_touch + "{}.csv")
+                    notouch_data_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern,
+                                                     "{}.csv".format(prefix_notouch))
+                    touch_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern,
+                                              prefix_touch + "{}.csv")
 
-                touch_list = get_touched_num(os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], pattern), prefix_touch)
+                touch_list = get_touched_num(os.path.join(SI.General_params.SNR_cfg['Dataset Path'], pattern),
+                                             prefix_touch)
 
                 # check touch list
                 if len(touch_list) == 0:
                     gms.log.emit(f"Cannot find any touch file!!!!\n "
                                  f"Please check path and prefix!!")
 
-
                 # match touch raw data file
                 touch_data_path_list = [touch_path.format(i) for i in touch_list]
-
 
                 # AnalyseData is main class for snr analysis
                 DataAnalyse = AnalyseData(no_touch_file_path=notouch_data_path,
                                           touch_file_paths=touch_data_path_list,
                                           notouch_range=(
-                                          int(SI.HW_THP_AFE_params.SNR_cfg['start idx notouch']), int(SI.HW_THP_AFE_params.SNR_cfg['end idx notouch'])),
-                                          touch_range=(int(SI.HW_THP_AFE_params.SNR_cfg['start idx touch']), int(SI.HW_THP_AFE_params.SNR_cfg['end idx touch'])))
+                                              int(SI.General_params.SNR_cfg['start idx notouch']),
+                                              int(SI.General_params.SNR_cfg['end idx notouch'])),
+                                          touch_range=(int(SI.General_params.SNR_cfg['start idx touch']),
+                                                       int(SI.General_params.SNR_cfg['end idx touch'])))
 
                 # print(pd.DataFrame(DataAnalyse.BOE_snr_summary()))
 
@@ -316,7 +304,8 @@ class Win_HW_THP_SNRGenerator:
                     if DataAnalyse.NoTouchFrame.mct_grid is not None:
                         DataAnalyse.write_out_filtered_data_csv()
                     else:
-                        gms.log.emit(f"Pattern: {pattern} do not have mutual raw data!! Could not generate grid rawdata!")
+                        gms.log.emit(
+                            f"Pattern: {pattern} do not have mutual raw data!! Could not generate grid rawdata!")
 
                 # plot no touch p2p noise heatmap
                 if self.ui.cBoxPlotNoiseptp.isChecked():
@@ -375,15 +364,15 @@ class Win_HW_THP_SNRGenerator:
                         gms.log.emit(f"Pattern: {pattern} do not have mutual raw data!! Could not plot "
                                      f"average Noise Map!")
 
+                # print(f"Already successful finish {pattern} !!!!!!!!!!!!!!")
                 gms.log.emit(f"Already successful finish {pattern} !!!!!!!!!!!!")
 
-
-            # write_out_final_result_csv(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], final_results)
-            gms.log.emit(f"successfull save summmary for Patterns {SI.HW_THP_AFE_params.Patterns}")
+            # write_out_final_result_csv(SI.General_params.SNR_cfg['Dataset Path'], final_results)
+            gms.log.emit(f"successfull save summmary for Patterns {SI.General_params.Patterns}")
             if BOE_results:
                 header = ["pattern (fullscreen)", "SNppR MCT", "SNrmsR MCT", "SNppR SCT Row",
                           "SNrmsR SCT Row", "SNppR SCT Col", "SNrmsR SCT Col"]
-                out_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], "BOE_summary.csv")
+                out_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], "BOE_summary.csv")
                 write_out_final_result_csv(out_path, header, BOE_results)
                 gms.log.emit("******************** BOE final results *********************")
                 gms.log.emit(str(header))
@@ -401,7 +390,7 @@ class Win_HW_THP_SNRGenerator:
 
             if HW_quick_results:
                 header = ["pattern (touch node)", "SNppR MCT", "SNppR SCT Row", "SNppR SCT Col"]
-                out_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], "HW_quick_summary.csv")
+                out_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], "HW_quick_summary.csv")
                 write_out_final_result_csv(out_path, header, HW_quick_results)
 
                 gms.log.emit("******************** HW QUICK final results *********************")
@@ -421,7 +410,7 @@ class Win_HW_THP_SNRGenerator:
             if HW_THP_AFE_results:
                 header = ["pattern (no touch node)", "SminNppR MCT", "SminNaveR MCT", "SminNppR SCT Row",
                           "SminNaveR SCT Row", "SminNppR SCT Col", "SminNaveR SCT Col"]
-                out_path = os.path.join(SI.HW_THP_AFE_params.SNR_cfg['Dataset Path'], "HW_thp_afe_summary.csv")
+                out_path = os.path.join(SI.General_params.SNR_cfg['Dataset Path'], "HW_thp_afe_summary.csv")
                 write_out_final_result_csv(out_path, header, HW_THP_AFE_results)
 
                 gms.log.emit("******************** HW THP final results *********************")

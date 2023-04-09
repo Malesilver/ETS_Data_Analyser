@@ -11,41 +11,25 @@ from copy import deepcopy
 file_dir = os.path.dirname(__file__)  # the directory that class "option" resides in
 pd.set_option('display.max_columns', None)
 
-MCT_DELTAGEN_DATA = 0
-SCTY_DELTAGEN_DATA = 1
-SCTX_DELTAGEN_DATA = 2
-MAX_DELTA_VALUE = 3000
-MIN_DELTA_VALUE = -3000
-
-HEADER_ETS = {
-    "Delta":
-    [[MCT_DELTAGEN_DATA, "mct_deltas.values[0][0]", "mct_deltas", 0, 0],
-    [SCTY_DELTAGEN_DATA, "sct_row_deltas[0]", "sct_row", 0, 0],
-    [SCTX_DELTAGEN_DATA, "sct_col_deltas[0]", "sct_col", 0, 0]],
-    "Signal":
-    [[MCT_DELTAGEN_DATA, "mct_signals.mct_signals[0][0]", "mct_signals", 0, 0],
-    [SCTY_DELTAGEN_DATA, "sct_signals.sct_row_signals[0]", "sct_row_signals", 0, 0],
-    [SCTX_DELTAGEN_DATA, "sct_signals.sct_col_signals[0]", "sct_col_signals", 0, 0]],
-    "Baseline":
-    [[MCT_DELTAGEN_DATA, "mct_signals.mct_signals[0][0]", "mct_deltas", 0, 0],
-    [SCTY_DELTAGEN_DATA, "sct_row_deltas[0]", "sct_row", 0, 0],
-    [SCTX_DELTAGEN_DATA, "sct_col_deltas[0]", "sct_col", 0, 0]]
-
-}
-
 
 class ETS_Data_Type(Enum):
     Signal = "signals",
-    Signal_IQ='signals_q',
+    Signal_IQ = 'signals_q',
     Delta = 'deltas',
     Baseline = 'baseline',
     Nodemap = 'tbd',
     Unknown = 255,
 
 
-
-class ETS_Dataframe:
-    def __init__(self, file_path=None, Header_index=None,start_idx=None,end_idx = None):
+class EtsDataframe:
+    def __init__(self, file_path=None, Header_index=None, start_idx=None, end_idx=None):
+        """
+        init function
+        :param file_path:
+        :param Header_index:
+        :param start_idx:
+        :param end_idx:
+        """
 
         self.mct_grid = None
         self.sct_row = None
@@ -73,11 +57,18 @@ class ETS_Dataframe:
         self.signal_high_thr = None
         self.df_raw_data = pd.read_csv(file_path)
 
-    def load_data_from_ets_csv(self,file_path):
-
+    def load_data_from_ets_csv(self, file_path: str):
+        """
+        load data from ets csv file and get data type, index, frame number
+        :param file_path: csv file path
+        :return: None
+        """
+        # read csv file
         df_data = pd.read_csv(file_path)
 
+        # get column name
         header = list(df_data.columns)
+
         flag_start_index = 0
         flag_end_index = 0
         # get flag name
@@ -90,12 +81,11 @@ class ETS_Dataframe:
                 break
 
         flag_name_list = header[flag_start_index:flag_end_index]
+        # filter data by flag name
         for flag in flag_name_list:
-            df_data=df_data[df_data[flag] == 1]
+            df_data = df_data[df_data[flag] == 1]
 
-
-
-        # define touch type
+        # get data type and index
         if 'signals' in flag_name_list[0]:
             for name in flag_name_list:
                 if name.endswith('signals_q'):
@@ -127,11 +117,13 @@ class ETS_Dataframe:
 
             if self.mct_flag is True and self.sct_flag is True:
                 mct_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains(f"mct_{self.DataType.value[0]}", regex=True)]
+                                           df_data.columns.str.contains(f"mct_{self.DataType.value[0]}", regex=True)]
                 sct_row_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                                df_data.columns.str.contains(f"sct_row_{self.DataType.value[0]}", regex=True)]
+                                               df_data.columns.str.contains(f"sct_row_{self.DataType.value[0]}",
+                                                                            regex=True)]
                 sct_col_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                                df_data.columns.str.contains(f"sct_col_{self.DataType.value[0]}", regex=True)]
+                                               df_data.columns.str.contains(f"sct_col_{self.DataType.value[0]}",
+                                                                            regex=True)]
 
                 row, col = re.findall(r"[\[](.*?)[\]]", mct_name[-1])[:2]
                 assert row == re.search(r"[\[](.*?)[\]]", sct_row_name[-1]).group(1)
@@ -145,7 +137,7 @@ class ETS_Dataframe:
 
             elif self.mct_flag is True:
                 mct_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains(f"mct_{self.DataType.value[0]}", regex=True)]
+                                           df_data.columns.str.contains(f"mct_{self.DataType.value[0]}", regex=True)]
                 row, col = re.findall(r"[\[](.*?)[\]]", mct_name[-1])[:2]
                 self.row_num = int(row) + 1
                 self.col_num = int(col) + 1
@@ -153,9 +145,11 @@ class ETS_Dataframe:
 
             elif self.sct_flag is True:
                 sct_row_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains(f"sct_row_{self.DataType.value[0]}", regex=True)]
+                                               df_data.columns.str.contains(f"sct_row_{self.DataType.value[0]}",
+                                                                            regex=True)]
                 sct_col_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains(f"sct_col_{self.DataType.value[0]}", regex=True)]
+                                               df_data.columns.str.contains(f"sct_col_{self.DataType.value[0]}",
+                                                                            regex=True)]
 
                 row = re.search(r"[\[](.*?)[\]]", sct_row_name[-1]).group(1)
                 col = re.search(r"[\[](.*?)[\]]", sct_col_name[-1]).group(1)
@@ -172,28 +166,28 @@ class ETS_Dataframe:
         elif self.DataType is ETS_Data_Type.Signal_IQ:
             if self.mct_flag is True and self.sct_flag is True:
                 mct_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                        df_data.columns.str.contains("mct_signals") &
-                                        ~df_data.columns.str.contains("_q")]
+                                           df_data.columns.str.contains("mct_signals") &
+                                           ~df_data.columns.str.contains("_q")]
 
                 mct_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                        df_data.columns.str.contains("mct_signals") &
-                                        df_data.columns.str.contains("_q")]
+                                             df_data.columns.str.contains("mct_signals") &
+                                             df_data.columns.str.contains("_q")]
 
                 sct_row_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains("sct_row_signals") &
-                                          ~df_data.columns.str.contains("_q")]
+                                               df_data.columns.str.contains("sct_row_signals") &
+                                               ~df_data.columns.str.contains("_q")]
 
                 sct_row_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains("sct_row_signals") &
-                                            df_data.columns.str.contains("_q")]
+                                                 df_data.columns.str.contains("sct_row_signals") &
+                                                 df_data.columns.str.contains("_q")]
 
                 sct_col_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains("sct_col_signals") &
-                                          ~df_data.columns.str.contains("_q")]
+                                               df_data.columns.str.contains("sct_col_signals") &
+                                               ~df_data.columns.str.contains("_q")]
 
                 sct_col_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains("sct_col_signals") &
-                                            df_data.columns.str.contains("_q")]
+                                                 df_data.columns.str.contains("sct_col_signals") &
+                                                 df_data.columns.str.contains("_q")]
 
                 row, col = re.findall(r"[\[](.*?)[\]]", mct_name[-1])[:2]
                 assert row == re.search(r"[\[](.*?)[\]]", sct_row_name[-1]).group(1)
@@ -214,12 +208,12 @@ class ETS_Dataframe:
                 pass
             elif self.mct_flag is True:
                 mct_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                      df_data.columns.str.contains("mct_signals") &
-                                      ~df_data.columns.str.contains("_q")]
+                                           df_data.columns.str.contains("mct_signals") &
+                                           ~df_data.columns.str.contains("_q")]
 
                 mct_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                        df_data.columns.str.contains("mct_signals") &
-                                        df_data.columns.str.contains("_q")]
+                                             df_data.columns.str.contains("mct_signals") &
+                                             df_data.columns.str.contains("_q")]
                 row, col = re.findall(r"[\[](.*?)[\]]", mct_name[-1])[:2]
                 self.row_num = int(row) + 1
                 self.col_num = int(col) + 1
@@ -230,20 +224,20 @@ class ETS_Dataframe:
 
             elif self.sct_flag is True:
                 sct_row_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains("sct_row_signals") &
-                                          ~df_data.columns.str.contains("_q")]
+                                               df_data.columns.str.contains("sct_row_signals") &
+                                               ~df_data.columns.str.contains("_q")]
 
                 sct_row_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains("sct_row_signals") &
-                                            df_data.columns.str.contains("_q")]
+                                                 df_data.columns.str.contains("sct_row_signals") &
+                                                 df_data.columns.str.contains("_q")]
 
                 sct_col_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                          df_data.columns.str.contains("sct_col_signals") &
-                                          ~df_data.columns.str.contains("_q")]
+                                               df_data.columns.str.contains("sct_col_signals") &
+                                               ~df_data.columns.str.contains("_q")]
 
                 sct_col_q_name = df_data.columns[df_data.columns.str.contains('\d', regex=True) &
-                                            df_data.columns.str.contains("sct_col_signals") &
-                                            df_data.columns.str.contains("_q")]
+                                                 df_data.columns.str.contains("sct_col_signals") &
+                                                 df_data.columns.str.contains("_q")]
 
                 row = re.search(r"[\[](.*?)[\]]", sct_row_name[-1]).group(1).astype(int)
                 col = re.search(r"[\[](.*?)[\]]", sct_col_name[-1]).group(1).astype(int)
@@ -273,120 +267,6 @@ class ETS_Dataframe:
             self.sct_row = self.sct_row[self.start_idx: self.end_idx, :]
             self.sct_col = self.sct_col[self.start_idx: self.end_idx, :]
 
-
-
-    def load_data_from_ets_csv_old(self, file_path):
-        mutual_raw = []
-        col_raw = []
-        row_raw = []
-        with open(file_path) as f:
-            reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_NONE)
-            for csv_line_idx, csv_line in enumerate(reader):
-                # Split comma separated data in line into list
-                # in case line end with space ""
-                if csv_line[-1] == "":
-                    csv_data = csv_line[:-1]
-                else:
-                    csv_data = csv_line
-
-                # Process header at first line
-                if csv_line_idx == 0:
-                    header = csv_data
-                    for col in csv_data[:5]:
-
-                        if "deltas" in col:
-                            self.Header_index = self.Header_index["Delta"]
-                            break
-                        elif "signals" in col:
-                            self.Header_index = self.Header_index["Signal"]
-                            break
-                        elif "baseline" in col:
-                            self.Header_index = self.Header_index["Baseline"]
-                            break
-                    # Search header in first row to identify column indices for playback data
-                    # print(csv_data[3])
-                    for column_idx, column_str in enumerate(csv_line):
-                        # print(column_str)
-                        for idx, playback_data in enumerate(self.Header_index):
-                            # print(playback_data[1])
-                            if playback_data[1] in column_str:
-                                # print("Found start of " + column_str + " idx=" + str(column_idx))
-                                # print("Looking for end at " + str(playback_data[2]))
-                                playback_data[3] = int(column_idx)
-
-                            elif playback_data[2] in column_str:
-                                self.Header_index[idx][4] = int(column_idx)
-
-                    for playback_data in self.Header_index:
-                        if playback_data[3] > playback_data[4]:
-                            playback_data[4] = len(csv_data)-1
-
-                    # print(self.Header_index)
-                else:
-
-                    mct_data = list(map(int, csv_data[self.Header_index[MCT_DELTAGEN_DATA][3]:
-                                                      self.Header_index[MCT_DELTAGEN_DATA][4] + 1]))
-
-                    row_data = list(map(int, csv_data[self.Header_index[SCTY_DELTAGEN_DATA][3]:
-                                                      self.Header_index[SCTY_DELTAGEN_DATA][4] + 1]))
-
-                    col_data = list(map(int, csv_data[self.Header_index[SCTX_DELTAGEN_DATA][3]:
-                                                      self.Header_index[SCTX_DELTAGEN_DATA][4] + 1]))
-
-                    if self.Header_index[MCT_DELTAGEN_DATA][4] > self.Header_index[MCT_DELTAGEN_DATA][3]:
-                        if (max(mct_data)>MAX_DELTA_VALUE) or (min(mct_data)<MIN_DELTA_VALUE):
-                            continue
-                        if (sum(mct_data)) == 0:
-                            continue
-                    if self.Header_index[SCTX_DELTAGEN_DATA][4] > self.Header_index[SCTX_DELTAGEN_DATA][3]:
-                        if (max(col_data)>MAX_DELTA_VALUE) or (min(col_data)<MIN_DELTA_VALUE):
-                            continue
-                        if (sum(col_data)) == 0:
-                            continue
-                    if self.Header_index[SCTY_DELTAGEN_DATA][4] > self.Header_index[SCTY_DELTAGEN_DATA][3]:
-                        if (max(row_data)>MAX_DELTA_VALUE) or (min(row_data)<MIN_DELTA_VALUE):
-                            continue
-                        if (sum(row_data)) == 0:
-                            continue
-
-                    mutual_raw.append(mct_data)
-                    col_raw.append(col_data)
-                    row_raw.append(row_data)
-
-                self.frame_num = csv_line_idx
-        f.close()
-
-        if self.start_idx is None or self.end_idx is None:
-            self.start_idx = 0
-            self.end_idx = self.frame_num
-
-
-        # header[self.Header_index[MCT_DELTAGEN_DATA][4]]) : [row][col]
-        # header[self.Header_index[SCTX_DELTAGEN_DATA][4]] : [row]
-        # header[self.Header_index[SCTY_DELTAGEN_DATA][4]] : [col]
-
-        if self.Header_index[MCT_DELTAGEN_DATA][4] > self.Header_index[MCT_DELTAGEN_DATA][3]:  # if  mct data exist
-            # find the tx num and rx num using re
-            row, col = re.findall(r"[\[](.*?)[\]]", header[self.Header_index[MCT_DELTAGEN_DATA][4]])
-            self.row_num = int(row) + 1
-            self.col_num = int(col) + 1
-            self.mct_grid = np.array(mutual_raw).reshape([len(mutual_raw), self.row_num, self.col_num])
-
-            self.mct_grid = self.mct_grid[self.start_idx : self.end_idx,:,:]
-            # print(f"using {self.mct_grid.shape[0]} frames for evaluation!!")
-        else:  # only sct data
-            col = re.search(r"[\[](.*?)[\]]", header[self.Header_index[SCTX_DELTAGEN_DATA][4]]).group(1)
-            row = re.search(r"[\[](.*?)[\]]", header[self.Header_index[SCTY_DELTAGEN_DATA][4]]).group(1)
-            self.row_num = int(row) + 1
-            self.col_num = int(col) + 1
-
-        if self.Header_index[SCTX_DELTAGEN_DATA][4] > self.Header_index[SCTX_DELTAGEN_DATA][3]:  # if sct row data exist
-            self.sct_row = np.array(row_raw)
-            self.sct_row = self.sct_row[self.start_idx : self.end_idx, :]
-        if self.Header_index[SCTY_DELTAGEN_DATA][4] > self.Header_index[SCTY_DELTAGEN_DATA][3]:  # if sct col data exist
-            self.sct_col = np.array(col_raw)
-            self.sct_col = self.sct_col[self.start_idx : self.end_idx, :]
-
     # *******************************************************************
     # ************    mutual grid field *********************************
     # *******************************************************************
@@ -414,16 +294,16 @@ class ETS_Dataframe:
     @property
     def mct_grid_p2p(self):
         """
-        Calculate the peak peak noise value of each node in all frames
+        Calculate the peak-peak noise value of each node in all frames
         """
         return self.mct_grid_max - self.mct_grid_min
 
     @property
     def mct_positive_noise(self):
         mct_max = self.mct_grid_max.astype(float)
-        _,y_node,x_node = self.mct_signal_position
-        for y in range(y_node-2,y_node+3):
-            for x in range(x_node-2,x_node+3):
+        _, y_node, x_node = self.mct_signal_position
+        for y in range(y_node - 2, y_node + 3):
+            for x in range(x_node - 2, x_node + 3):
                 if x < 0 or y < 0 or x >= self.col_num or y >= self.row_num:
                     continue
                 else:
@@ -442,7 +322,6 @@ class ETS_Dataframe:
                     mct_max[y][x] = np.NaN
         return mct_max
 
-
     @property
     def mct_grid_rms(self):
         # alternative method
@@ -451,33 +330,33 @@ class ETS_Dataframe:
 
     @property
     def mct_signal_position(self):
-        n, y_node, x_node = np.unravel_index(self.mct_grid.argmax(), self.mct_grid.shape)
-        return n, y_node, x_node
+        n, row_node, col_node = np.unravel_index(self.mct_grid.argmax(), self.mct_grid.shape)
+        return n, row_node, col_node
 
     @property
     def mct_signal_max(self):
-        _, y_node, x_node = self.mct_signal_position
-        return self.mct_grid_max[y_node][x_node]
+        _, row_node, col_node = self.mct_signal_position
+        return self.mct_grid_max[row_node][col_node]
 
     @property
     def mct_signal_min(self):
-        _, y_node, x_node = self.mct_signal_position
-        return self.mct_grid_min[y_node][x_node]
+        _, row_node, col_node = self.mct_signal_position
+        return self.mct_grid_min[row_node][col_node]
 
     @property
     def mct_signal_mean(self):
-        _, y_node, x_node = self.mct_signal_position
-        return self.mct_grid_mean[y_node][x_node]
+        _, row_node, col_node = self.mct_signal_position
+        return self.mct_grid_mean[row_node][col_node]
 
     @property
     def mct_grid_p2p_position(self):
         y_node, x_node = np.unravel_index(self.mct_grid_p2p.argmax(), self.mct_grid_p2p.shape)
 
         # size for single node: [len,1,1]
-        max_noise_node = self.mct_grid[:,y_node,x_node]
+        max_noise_node = self.mct_grid[:, y_node, x_node]
         max_index = np.unravel_index(max_noise_node.argmax(), max_noise_node.shape)
         min_index = np.unravel_index(max_noise_node.argmin(), max_noise_node.shape)
-        return (min_index[0],max_index[0])
+        return (min_index[0], max_index[0])
 
     # *******************************************************************
     # ************************    self cap row field ********************
@@ -506,23 +385,23 @@ class ETS_Dataframe:
 
     @property
     def sct_row_signal_position(self):
-        n, x_node = np.unravel_index(self.sct_row.argmax(), self.sct_row.shape)
-        return n, x_node
+        n, row_node = np.unravel_index(self.sct_row.argmax(), self.sct_row.shape)
+        return n, row_node
 
     @property
     def sct_row_signal_max(self):
-        _, y_node = self.sct_row_signal_position
-        return self.sct_row_max[y_node]
+        _, row_node = self.sct_row_signal_position
+        return self.sct_row_max[row_node]
 
     @property
     def sct_row_signal_min(self):
-        _, y_node = self.sct_row_signal_position
-        return self.sct_row_min[y_node]
+        _, row_node = self.sct_row_signal_position
+        return self.sct_row_min[row_node]
 
     @property
     def sct_row_signal_mean(self):
-        _, y_node = self.sct_row_signal_position
-        return self.sct_row_mean[y_node]
+        _, row_node = self.sct_row_signal_position
+        return self.sct_row_mean[row_node]
 
     @property
     def sct_row_p2p_position(self):
@@ -583,30 +462,30 @@ class ETS_Dataframe:
 
     @property
     def sct_col_signal_position(self):
-        n, y_node = np.unravel_index(self.sct_col.argmax(), self.sct_col.shape)
-        return n, y_node
+        n, col_node = np.unravel_index(self.sct_col.argmax(), self.sct_col.shape)
+        return n, col_node
 
     @property
     def sct_col_signal_max(self):
-        _, y_node = self.sct_col_signal_position
-        return self.sct_col_max[y_node]
+        _, col_node = self.sct_col_signal_position
+        return self.sct_col_max[col_node]
 
     @property
     def sct_col_signal_min(self):
-        _, y_node = self.sct_col_signal_position
-        return self.sct_col_min[y_node]
+        _, col_node = self.sct_col_signal_position
+        return self.sct_col_min[col_node]
 
     @property
     def sct_col_signal_mean(self):
-        _, y_node = self.sct_col_signal_position
-        return self.sct_col_mean[y_node]
+        _, col_node = self.sct_col_signal_position
+        return self.sct_col_mean[col_node]
 
     @property
     def sct_col_p2p_position(self):
-        y_node = np.unravel_index(self.sct_col_p2p.argmax(), self.sct_col_p2p.shape)
+        col_node = np.unravel_index(self.sct_col_p2p.argmax(), self.sct_col_p2p.shape)
 
         # size for single node: [len,1,1]
-        max_noise_node = self.sct_col[:, y_node]
+        max_noise_node = self.sct_col[:, col_node]
         max_index = np.unravel_index(max_noise_node.argmax(), max_noise_node.shape)
         min_index = np.unravel_index(max_noise_node.argmin(), max_noise_node.shape)
         return (min_index[0], max_index[0])
@@ -614,8 +493,8 @@ class ETS_Dataframe:
     @property
     def sct_col_positive_noise(self):
         sct_col_max = self.sct_col_max.astype(float)
-        _, x_node = self.sct_col_signal_position
-        for x in range(x_node - 2, x_node + 3):
+        _, col_node = self.sct_col_signal_position
+        for x in range(col_node - 2, col_node + 3):
             if x < 0 or x >= self.row_num:
                 continue
             else:
@@ -625,21 +504,20 @@ class ETS_Dataframe:
     @property
     def sct_col_negative_noise(self):
         sct_col_max = self.sct_col_min.astype(float)
-        _, x_node = self.sct_col_signal_position
-        for x in range(x_node - 2, x_node + 3):
+        _, col_node = self.sct_col_signal_position
+        for x in range(col_node - 2, col_node + 3):
             if x < 0 or x >= self.row_num:
                 continue
             else:
                 sct_col_max[x] = np.NaN
         return sct_col_max
 
-
     def __len__(self):
         if self.mct_grid is not None:
             return len(self.mct_grid)
 
         elif self.sct_row is not None:
-            return  len(self.sct_row)
+            return len(self.sct_row)
 
         else:
             return 0

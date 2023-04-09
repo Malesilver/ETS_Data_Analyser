@@ -7,7 +7,7 @@ from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QApplication, QMainWindow,QWidget,QSizePolicy
 from PySide6 import QtWidgets
 from PySide6 import QtGui
-from lib.share import sdm
+from lib.share import ShareDataManager
 class Func_Plot2DLine(QWidget):
     def __init__(self):
         super().__init__()
@@ -24,7 +24,7 @@ class Func_Plot2DLine(QWidget):
         # *************************Rx**********************
         self.set_Rx = QBarSet("Self Cap. Rx")
 
-        Rx_data = sdm.current_sct_row.flatten()
+        Rx_data = ShareDataManager.current_row_data.flatten()
 
 
         self.set_Rx.append(list(Rx_data))
@@ -38,7 +38,7 @@ class Func_Plot2DLine(QWidget):
         self.chart_Rx = QChart()
         self.chart_Rx.addSeries(self.series_Rx)
         self.chart_Rx.setTitle("Self Cap. Rx")
-        self.chart_Rx.setAnimationOptions(QChart.SeriesAnimations)
+        self.chart_Rx.setAnimationOptions(QChart.NoAnimation)
         self.chart_Rx.setTheme(QChart.ChartThemeBlueIcy)
 
         self.axis_x = QBarCategoryAxis()
@@ -59,7 +59,7 @@ class Func_Plot2DLine(QWidget):
 
         # *************************Tx**********************
         self.set_Tx = QBarSet("Self Cap. Tx")
-        Tx_data = sdm.current_sct_col.flatten()
+        Tx_data = ShareDataManager.current_col_data.flatten()
         self.set_Tx.append(list(Tx_data))
 
         self.series_Tx = QBarSeries()
@@ -69,7 +69,7 @@ class Func_Plot2DLine(QWidget):
         self.chart_Tx = QChart()
         self.chart_Tx.addSeries(self.series_Tx)
         self.chart_Tx.setTitle("Self Cap. Tx")
-        self.chart_Tx.setAnimationOptions(QChart.SeriesAnimations)
+        self.chart_Tx.setAnimationOptions(QChart.NoAnimation)
         self.chart_Tx.setTheme(QChart.ChartThemeBlueIcy)
 
         self.axis_x = QBarCategoryAxis()
@@ -106,7 +106,7 @@ class Func_Plot2DLine(QWidget):
                                                QtWidgets.QMessageBox.No)
         # 判断返回结果处理相应事项
         if reply == QtWidgets.QMessageBox.Yes:
-            del sdm.subWinTable[str(Func_Plot2DLine)]
+            del ShareDataManager.subWinTable[str(Func_Plot2DLine)]
             event.accept()
         else:
             event.ignore()

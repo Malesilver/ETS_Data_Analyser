@@ -1,0 +1,9 @@
+{
+  "Dataset Path": "C:/workspace/workspace/Bitbucket/ETS_Data_Analyser/Data/BOE_0824_v2",
+  "touch file prefix": "w",
+  "notouch file prefix": "wo",
+  "start idx notouch": "0",
+  "end idx notouch": "300",
+  "start idx touch": "0",
+  "end idx touch": "100"
+}

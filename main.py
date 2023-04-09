@@ -13,11 +13,18 @@ from HW_THP_snr_generator import Win_HW_THP_SNRGenerator
 from pattern_generator import Win_Pattern_Generator
 from snr_data_viewer import Win_SNRDataViewer
 from APL_Analysis import Win_APL_Analysis
+from general_snr_generator import WinGeneralSNRGenerator
 
 
 class Win_Main(QtWidgets.QMainWindow):
+    """
+    main window class
+    """
 
     def __init__(self):
+        """
+        init main window class
+        """
         super(Win_Main, self).__init__()
         self.ui = QUiLoader().load('data_analyser_main.ui')
         self.ui.installEventFilter(self)
@@ -33,61 +40,109 @@ class Win_Main(QtWidgets.QMainWindow):
         self.ui.action_BOE_SNR_reporter_2.triggered.connect(self.onBOE_SNRGenerator_2)
         self.ui.actionSNR_Data_Viewer.triggered.connect(self.onSNR_Data_Viewer)
         self.ui.actionAPL_Analysis.triggered.connect(self.onAPL_Analysis)
+        self.ui.actionGeneral_SNR_report.triggered.connect(self.onGeneralSNRGenerator)
 
     def onCfgSetting(self):
+        """
+        open cfg setting window
+        :return: None
+        """
         self._openSubWin(Win_CfgSetting)
 
     def onSNR_Data_Viewer(self):
+        """
+        open SNR Data Viewer window
+        :return: None
+        """
         self._openSubWin(Win_SNRDataViewer)
 
     def onPatternGenerator(self):
+        """
+        open Pattern Generator window
+        :return: None
+        """
         self._openSubWin(Win_Pattern_Generator)
 
     def onAPL_Analysis(self):
+        """
+        open APL Analysis window
+        :return: None
+        """
         self._openSubWin(Win_APL_Analysis)
 
     def onBOE_SNRGenerator(self):
+        """
+        open BOE SNR Generator window
+        :return: None
+        """
         self._openSubWin(Win_BOE_SNRGenerator)
 
     def onBOE_SNRGenerator_2(self):
+        """
+        open BOE SNR Generator window
+        :return: None
+        """
         self._openSubWin(Win_BOE_SNRGenerator_2)
 
     def onHW_THP_SNRGenerator(self):
+        """
+        open HW THP SNR Generator window
+        :return: None
+        """
         self._openSubWin(Win_HW_THP_SNRGenerator)
 
+    def onGeneralSNRGenerator(self):
+        """
+        open General SNR Generator window
+        :return: None
+        """
+        self._openSubWin(WinGeneralSNRGenerator)
+
     def onDataViewer(self):
+        """
+        open Data Viewer window
+        :return:None
+        """
         self._openSubWin(Win_DataViewer)
 
     def _openSubWin(self,FuncClass):
+        """
+        generic open sub window function
+        :param FuncClass: sub window class
+        :return: None
+        """
         def createSubWin():
+            # create sub window instance
             subWinFunc = FuncClass()
             subWin = QMdiSubWindow()
             subWin.setWidget(subWinFunc.ui)
             subWin.setAttribute(Qt.WA_DeleteOnClose)
             self.ui.mdiArea.addSubWindow(subWin)
-            # 存入表中，注意winFunc对象也要保存，不然对象没有引用，会销毁
+            # add sub window instance to subWinTable, key is sub window class name , value is sub window instance
+            # if sub window instance already exist, just show it
             SI.subWinTable[str(FuncClass)] = {'subWin':subWin,'subWinFunc':subWinFunc}
             subWin.show()
-            # 子窗口提到最上层，并且最大化
+            # sub window always on top and maximized
             subWin.setWindowState(Qt.WindowActive|Qt.WindowMaximized)
 
-        # 如果该功能类型 实例不存在
+        # if sub window instance not exist, create it
         if str(FuncClass) not in SI.subWinTable:
-            #创建实例
+            # create sub window instance
             createSubWin()
             return
 
-        # 如果已经存在，直接show一下
+        # if sub window instance already exist, just show it
         subWin = SI.subWinTable[str(FuncClass)]['subWin']
         try:
             subWin.show()
-            # 子窗口提到最上层，并且最大化
+            # sub window always on top and maximized
             subWin.setWindowState(Qt.WindowActive | Qt.WindowMaximized)
         except:
-            # show 异常原因肯定是用户手动关闭了该窗口，subWin对象已经不存在了
+            # if sub window instance already exist but closed, create it again
             createSubWin()
 
     def eventFilter(self, obj, event):
+        # judge if obj is self.ui and event type is close event
         if obj is self.ui and event.type() == QtCore.QEvent.Close:
             reply = QtWidgets.QMessageBox.question(self.ui, 'Message',
                                                    "Are you sure to quit?",
@@ -95,7 +150,7 @@ class Win_Main(QtWidgets.QMainWindow):
                                                    QtWidgets.QMessageBox.No
                                                    )
 
-            # 判断返回结果处理相应事项
+            # return True to stop event propagation
             if reply == QtWidgets.QMessageBox.Yes:
                 event.accept()
                 self.ui.removeEventFilter(self)
@@ -105,6 +160,10 @@ class Win_Main(QtWidgets.QMainWindow):
         return super(Win_Main, self).eventFilter(obj, event)
 
     def closeEvent(self):
+        """
+        close event
+        :return: None
+        """
         # message为窗口标题
         # Are you sure to quit?窗口显示内容
         # QtWidgets.QMessageBox.Yes | QtGui.QMessageBox.No窗口按钮部件
@@ -122,10 +181,11 @@ class Win_Main(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
+    # load cfg file
     SI.loadCfgFile()
+    # create main window instance
     app = QApplication(sys.argv)
     mainWin = Win_Main()
     mainWin.ui.show()
-
 
     app.exec()

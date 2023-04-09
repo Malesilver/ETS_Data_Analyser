@@ -3,7 +3,7 @@ from PySide6.QtUiTools import QUiLoader
 
 import os
 from lib.share import SI, MySignals
-from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv, HEADER_ETS
+from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv
 from threading import Thread
 import json
 from PySide6.QtCore import Qt

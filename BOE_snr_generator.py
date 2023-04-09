@@ -3,7 +3,7 @@ from PySide6.QtUiTools import QUiLoader
 
 import os
 from lib.share import SI, MySignals
-from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv, HEADER_ETS
+from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv
 from threading import Thread
 
 gms = MySignals()
@@ -163,7 +163,6 @@ class Win_BOE_SNRGenerator:
                 # AnalyseData is main class for snr analysis
                 DataAnalyse = AnalyseData(no_touch_file_path=notouch_data_path,
                                           touch_file_paths=touch_data_path_list,
-                                          Header_index=HEADER_ETS,
                                           notouch_range=(
                                           int(SI.cfg['start idx notouch']), int(SI.cfg['end idx notouch'])),
                                           touch_range=(int(SI.cfg['start idx touch']), int(SI.cfg['end idx touch'])))
@@ -172,7 +171,7 @@ class Win_BOE_SNRGenerator:
 
                 # select vendor for different report
                 if "BOE" in SI.Customers:
-                    BOE_ret = DataAnalyse.BOE_snr_summary()
+                    BOE_ret = DataAnalyse.boe_snr_summary()
                     DataAnalyse.write_out_csv(BOE_ret)
                     # "min_SmaxNppfullscreenR_dB": "{:.2f}".format(min_SmaxNppfullscreenR_dB),
                     # "Position_P2P": f"Touch {min_SmaxNppfullscreenR_dB_index + 1}",
@@ -200,7 +199,7 @@ class Win_BOE_SNRGenerator:
                         tmp_res.extend(["NaN", "NaN"])
                     BOE_results.append(tmp_res)
                     # todo ******** VNX test ****************
-                    VNX_ret = DataAnalyse.VNX_snr_summary()
+                    VNX_ret = DataAnalyse.vnx_snr_summary()
                     DataAnalyse.write_out_csv(VNX_ret)
                     tmp_res = [pattern]
                     if VNX_ret.get("mct_summary", None) is not None:
@@ -223,7 +222,7 @@ class Win_BOE_SNRGenerator:
 
 
                 if "Huawei_quick" in SI.Customers:
-                    HW_quick_ret = DataAnalyse.HW_quick_snr_summary()
+                    HW_quick_ret = DataAnalyse.hw_quick_snr_summary()
                     DataAnalyse.write_out_csv(HW_quick_ret)
 
                     tmp_res = [pattern]
@@ -246,7 +245,7 @@ class Win_BOE_SNRGenerator:
                     HW_quick_results.append(tmp_res)
 
                 if "Huawei_thp_afe" in SI.Customers:
-                    HW_thp_afe_ret = DataAnalyse.HW_thp_afe_snr_summary()
+                    HW_thp_afe_ret = DataAnalyse.hw_thp_afe_snr_summary()
                     DataAnalyse.write_out_csv(HW_thp_afe_ret)
 
                     tmp_res = [pattern]

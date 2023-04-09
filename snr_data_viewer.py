@@ -5,8 +5,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 import pandas as pd
 import numpy as np
 from lib.PandasModel import PandasModel
-from lib.ETS_Dataframe import HEADER_ETS, ETS_Dataframe
-from lib.share import sdm
+from lib.EtsDataframe import EtsDataframe
+from lib.share import ShareDataManager
 from lib.surface_plotting3d import Func_Plot3Dsurface
 from lib.line_plotting_2d import Func_Plot2DLine
 from lib.line_diff_plotting_2d import Func_Plot2DStackBar
@@ -15,7 +15,7 @@ from PySide6.QtGui import *
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from lib.share import SI
-from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv, HEADER_ETS
+from lib.ETS_Analysis import AnalyseData, get_touched_num, write_out_final_result_csv
 import os,sys
 from threading import Thread
 class Win_SNRDataViewer(QtCore.QObject):
@@ -172,7 +172,6 @@ class Win_SNRDataViewer(QtCore.QObject):
                     if len(touch_list)>0:
                         self.DataAnalyse = AnalyseData(no_touch_file_path=notouch_data_path,
                                                   touch_file_paths=touch_data_path_list,
-                                                  Header_index=HEADER_ETS,
                                                   notouch_range=(
                                                       int(SI.cfg['start idx notouch']),
                                                       int(SI.cfg['end idx notouch'])),
@@ -207,11 +206,11 @@ class Win_SNRDataViewer(QtCore.QObject):
         # Peak-Peak Noise
         elif index == 1:
             if self.rawDataFrame.mct_grid is not None:
-                sdm.current_mct_grid = self.rawDataFrame.mct_grid_p2p.astype(int)
+                ShareDataManager.current_grid_data = self.rawDataFrame.mct_grid_p2p.astype(int)
             if self.rawDataFrame.sct_row is not None:
-                sdm.current_sct_row = self.rawDataFrame.sct_row_p2p.astype(int)
+                ShareDataManager.current_row_data = self.rawDataFrame.sct_row_p2p.astype(int)
             if self.rawDataFrame.sct_col is not None:
-                sdm.current_sct_col = self.rawDataFrame.sct_col_p2p.astype(int)
+                ShareDataManager.current_col_data = self.rawDataFrame.sct_col_p2p.astype(int)
 
 
             self._setNormalDataFrame(self.inverse)
@@ -225,11 +224,11 @@ class Win_SNRDataViewer(QtCore.QObject):
         elif index == 2:
 
             if self.rawDataFrame.mct_grid is not None:
-                sdm.current_mct_grid = np.round(self.rawDataFrame.mct_grid_rms,2)
+                ShareDataManager.current_grid_data = np.round(self.rawDataFrame.mct_grid_rms, 2)
             if self.rawDataFrame.sct_row is not None:
-                sdm.current_sct_row = np.round(self.rawDataFrame.sct_row_rms,2)
+                ShareDataManager.current_row_data = np.round(self.rawDataFrame.sct_row_rms, 2)
             if self.rawDataFrame.sct_col is not None:
-                sdm.current_sct_col = np.round(self.rawDataFrame.sct_col_rms,2)
+                ShareDataManager.current_col_data = np.round(self.rawDataFrame.sct_col_rms, 2)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -357,11 +356,11 @@ class Win_SNRDataViewer(QtCore.QObject):
         # mean value
         elif index == 9:
             if self.rawDataFrame.mct_grid is not None:
-                sdm.current_mct_grid = np.round(self.rawDataFrame.mct_grid.mean(axis = 0), 1)
+                ShareDataManager.current_grid_data = np.round(self.rawDataFrame.mct_grid.mean(axis = 0), 1)
             if self.rawDataFrame.sct_row is not None:
-                sdm.current_sct_row = np.round(self.rawDataFrame.sct_row.mean(axis = 0), 1)
+                ShareDataManager.current_row_data = np.round(self.rawDataFrame.sct_row.mean(axis = 0), 1)
             if self.rawDataFrame.sct_col is not None:
-                sdm.current_sct_col = np.round(self.rawDataFrame.sct_col.mean(axis = 0), 1)
+                ShareDataManager.current_col_data = np.round(self.rawDataFrame.sct_col.mean(axis = 0), 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -372,11 +371,11 @@ class Win_SNRDataViewer(QtCore.QObject):
         # Smean Nrms R
         elif index == 10:
             if self.rawDataFrame.mct_grid is not None:
-                sdm.current_mct_grid = np.round(self.rawDataFrame.mct_signal_max/self.rawDataFrame.mct_grid_rms, 1)
+                ShareDataManager.current_grid_data = np.round(self.rawDataFrame.mct_signal_max / self.rawDataFrame.mct_grid_rms, 1)
             if self.rawDataFrame.sct_row is not None:
-                sdm.current_sct_row = np.round(self.rawDataFrame.sct_row_signal_max/self.rawDataFrame.sct_row_rms, 1)
+                ShareDataManager.current_row_data = np.round(self.rawDataFrame.sct_row_signal_max / self.rawDataFrame.sct_row_rms, 1)
             if self.rawDataFrame.sct_col is not None:
-                sdm.current_sct_col = np.round(self.rawDataFrame.sct_col_signal_max/self.rawDataFrame.sct_col_rms, 1)
+                ShareDataManager.current_col_data = np.round(self.rawDataFrame.sct_col_signal_max / self.rawDataFrame.sct_col_rms, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -390,13 +389,13 @@ class Win_SNRDataViewer(QtCore.QObject):
 
             if self.rawDataFrame.mct_grid is not None:
                 mct_signal,status = QInputDialog.getInt(self.ui, "MCT Signal Input", "Input tips\nplease enter number (-10000~+10000):")
-                sdm.current_mct_grid = np.round(mct_signal / self.rawDataFrame.mct_grid_p2p, 1)
+                ShareDataManager.current_grid_data = np.round(mct_signal / self.rawDataFrame.mct_grid_p2p, 1)
             if self.rawDataFrame.sct_row is not None:
                 sct_row_signal,status = QInputDialog.getInt(self.ui, "SCT Row Signal Input", "Input tips\nplease enter number (-10000~+10000):")
-                sdm.current_sct_row = np.round(sct_row_signal / self.rawDataFrame.sct_row_p2p, 1)
+                ShareDataManager.current_row_data = np.round(sct_row_signal / self.rawDataFrame.sct_row_p2p, 1)
             if self.rawDataFrame.sct_col is not None:
                 sct_col_signal,status = QInputDialog.getInt(self.ui, "SCT Col Signal Input", "Input tips\nplease enter number (-10000~+10000):")
-                sdm.current_sct_col = np.round(sct_col_signal / self.rawDataFrame.sct_col_p2p, 1)
+                ShareDataManager.current_col_data = np.round(sct_col_signal / self.rawDataFrame.sct_col_p2p, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -419,7 +418,7 @@ class Win_SNRDataViewer(QtCore.QObject):
 
                 touch_data = np.array(touch_data)
                 grid_Data = touch_data.max(axis=0)
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
             if self.rawDataFrame.sct_row is not None:
                 touch_data_row = []
                 for TouchFrame in self.DataAnalyse.TouchFrameSets:
@@ -427,7 +426,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     touch_data_row.append(touch_row)
                 touch_data_row = np.array(touch_data_row).astype(int)
                 touch_data_row = touch_data_row.max(axis=0)
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
             if self.rawDataFrame.sct_col is not None:
                 touch_data_col = []
                 for TouchFrame in self.DataAnalyse.TouchFrameSets:
@@ -435,7 +434,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     touch_data_col.append(touch_col)
                 touch_data_col = np.array(touch_data_col).astype(int)
                 touch_data_col = touch_data_col.max(axis=0)
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -456,7 +455,7 @@ class Win_SNRDataViewer(QtCore.QObject):
 
                 snr_grid_list = np.array(snr_grid_list)
                 grid_Data = snr_grid_list.min(axis=0)
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
                 snr_row_list = []
@@ -467,7 +466,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     snr_row_list.append(snr_row)
                 snr_row_list = np.array(snr_row_list)
                 touch_data_row = snr_row_list.min(axis=0)
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
                 snr_col_list = []
@@ -478,7 +477,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     snr_col_list.append(snr_col)
                 snr_col_list = np.array(snr_col_list)
                 touch_data_col = snr_col_list.min(axis=0)
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -500,7 +499,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                 snr_grid_list = np.array(snr_grid_list)
                 grid_Data = snr_grid_list.min(axis=0)
                 grid_Data = 20 * np.log10(grid_Data)
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
                 snr_row_list = []
@@ -512,7 +511,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                 snr_row_list = np.array(snr_row_list)
                 touch_data_row = snr_row_list.min(axis=0)
                 touch_data_row = 20 * np.log10(touch_data_row)
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
                 snr_col_list = []
@@ -524,7 +523,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                 snr_col_list = np.array(snr_col_list)
                 touch_data_col = snr_col_list.min(axis=0)
                 touch_data_col = 20 * np.log10(touch_data_col)
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -544,7 +543,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     grid_Data[y_node][x_node] = signal / self.DataAnalyse.NoTouchFrame.mct_grid_p2p[y_node][x_node]
 
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -557,7 +556,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -571,7 +570,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node,touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -592,7 +591,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     snr_mct_node = 20 * np.log10(snr_mct_node)
                     grid_Data[y_node][x_node] = snr_mct_node
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -605,7 +604,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -619,7 +618,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node, touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -639,7 +638,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     snr_mct_node = signal / TouchFrame.mct_grid_rms[y_node][x_node]
                     grid_Data[y_node][x_node] = snr_mct_node
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -652,7 +651,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -666,7 +665,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node, touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -687,7 +686,7 @@ class Win_SNRDataViewer(QtCore.QObject):
 
                     grid_Data[y_node][x_node] = snr_mct_node
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -700,7 +699,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -714,7 +713,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node, touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -735,7 +734,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     # snr_mct_node = 20 * np.log10(snr_mct_node)
                     grid_Data[y_node][x_node] = snr_mct_node
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -748,7 +747,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -762,7 +761,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node, touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -783,7 +782,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     snr_mct_node = 20 * np.log10(snr_mct_node)
                     grid_Data[y_node][x_node] = snr_mct_node
 
-                sdm.current_mct_grid = np.round(grid_Data, 1)
+                ShareDataManager.current_grid_data = np.round(grid_Data, 1)
 
             if self.rawDataFrame.sct_row is not None:
 
@@ -797,7 +796,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                         touch_data_row[x_node] = snr_node
                     else:
                         touch_data_row[x_node] = min(snr_node, touch_data_row[x_node])
-                sdm.current_sct_row = np.round(touch_data_row, 1)
+                ShareDataManager.current_row_data = np.round(touch_data_row, 1)
 
             if self.rawDataFrame.sct_col is not None:
 
@@ -812,7 +811,7 @@ class Win_SNRDataViewer(QtCore.QObject):
                     else:
                         touch_data_col[y_node] = min(snr_node, touch_data_col[y_node])
 
-                sdm.current_sct_col = np.round(touch_data_col, 1)
+                ShareDataManager.current_col_data = np.round(touch_data_col, 1)
 
             self._setNormalDataFrame(self.inverse)
             self.ui.btn_previous.setEnabled(False)
@@ -911,9 +910,9 @@ class Win_SNRDataViewer(QtCore.QObject):
     def loadFile(self,fileName,min_idx = None,max_idx=None):
 
         self.inverse = False
-        self.rawDataFrame = ETS_Dataframe(fileName, Header_index=HEADER_ETS,start_idx=min_idx,end_idx=max_idx)
-        sdm.row_num = self.rawDataFrame.row_num
-        sdm.colum_num = self.rawDataFrame.col_num
+        self.rawDataFrame = EtsDataframe(fileName, start_idx=min_idx, end_idx=max_idx)
+        ShareDataManager.row_num = self.rawDataFrame.row_num
+        ShareDataManager.colum_num = self.rawDataFrame.col_num
 
         columns = [f"TX {idx + 1}" for idx in range(self.rawDataFrame.col_num)]
         index = [f"RX {idx + 1}" for idx in range(self.rawDataFrame.row_num)]
@@ -926,7 +925,7 @@ class Win_SNRDataViewer(QtCore.QObject):
         else:
             mct_df = pd.DataFrame(np.zeros([self.rawDataFrame.row_num, self.rawDataFrame.col_num]), columns=columns,
                                   index=index)
-        sdm.current_mct_grid = mct_df.values
+        ShareDataManager.current_grid_data = mct_df.values
 
         if self.rawDataFrame.sct_col is not None:
             sct_col_df = pd.DataFrame(self.rawDataFrame.sct_col[0], columns=[" "], index=columns).T
@@ -937,9 +936,9 @@ class Win_SNRDataViewer(QtCore.QObject):
             sct_col_max = np.zeros(self.rawDataFrame.col_num)
             sct_col_min = np.zeros(self.rawDataFrame.col_num)
 
-        sdm.current_sct_col = sct_col_df.values
-        sdm.current_sct_col_max = sct_col_max
-        sdm.current_sct_col_min = sct_col_min
+        ShareDataManager.current_col_data = sct_col_df.values
+        ShareDataManager.current_col_data_max = sct_col_max
+        ShareDataManager.current_col_data_min = sct_col_min
 
         if self.rawDataFrame.sct_row is not None:
             sct_row_df = pd.DataFrame(self.rawDataFrame.sct_row[0], columns=[" "], index=index)
@@ -950,9 +949,9 @@ class Win_SNRDataViewer(QtCore.QObject):
             sct_row_max = np.zeros(self.rawDataFrame.row_num)
             sct_row_min = np.zeros(self.rawDataFrame.row_num)
 
-        sdm.current_sct_row = sct_row_df.values.T
-        sdm.current_sct_row_max = sct_row_max
-        sdm.current_sct_row_min = sct_row_min
+        ShareDataManager.current_row_data = sct_row_df.values.T
+        ShareDataManager.current_row_data_max = sct_row_max
+        ShareDataManager.current_sct_row_min = sct_row_min
 
         try:
             self._resetPlotWidget()
@@ -1023,41 +1022,41 @@ class Win_SNRDataViewer(QtCore.QObject):
         self.ui.comboBox.addItem("SminNaveR(dB)")
 
 
-        if str(Func_Plot2DStackBar) in sdm.subWinTable:
+        if str(Func_Plot2DStackBar) in ShareDataManager.subWinTable:
             self._resetStackBarPlotWidget()
 
     def _setDataFrame(self, pageNum, inverse_flag):
         columns = [f"TX {idx + 1}" for idx in range(self.rawDataFrame.col_num)]
         index = [f"RX {idx + 1}" for idx in range(self.rawDataFrame.row_num)]
         if self.rawDataFrame.mct_grid is not None:
-            sdm.current_mct_grid = self.rawDataFrame.mct_grid[pageNum - 1]
-            mct_df = pd.DataFrame(sdm.current_mct_grid, columns=columns, index=index)
+            ShareDataManager.current_grid_data = self.rawDataFrame.mct_grid[pageNum - 1]
+            mct_df = pd.DataFrame(ShareDataManager.current_grid_data, columns=columns, index=index)
             mct_model = PandasModel(mct_df) if not inverse_flag else PandasModel(mct_df.T)
             self.ui.gridDataViewer.setModel(mct_model)
             self.ui.gridDataViewer.resizeRowsToContents()
             self.ui.gridDataViewer.resizeColumnsToContents()
 
         if self.rawDataFrame.sct_row is not None:
-            sdm.current_sct_row = self.rawDataFrame.sct_row[pageNum - 1]
+            ShareDataManager.current_row_data = self.rawDataFrame.sct_row[pageNum - 1]
             if self.inverse:
 
-                sct_col_df = pd.DataFrame(sdm.current_sct_row, columns=[" "], index=index).T
+                sct_col_df = pd.DataFrame(ShareDataManager.current_row_data, columns=[" "], index=index).T
                 sct_col_model = PandasModel(sct_col_df)
                 self.ui.sctRowDataViewer.setModel(sct_col_model)
                 self.ui.sctRowDataViewer.resizeRowsToContents()
                 self.ui.sctRowDataViewer.resizeColumnsToContents()
 
             else:
-                sct_row_df = pd.DataFrame(sdm.current_sct_row, columns=[" "], index=index)
+                sct_row_df = pd.DataFrame(ShareDataManager.current_row_data, columns=[" "], index=index)
                 sct_row_model = PandasModel(sct_row_df)
                 self.ui.sctColDataViewer.setModel(sct_row_model)
                 self.ui.sctColDataViewer.resizeRowsToContents()
                 self.ui.sctColDataViewer.resizeColumnsToContents()
 
         if self.rawDataFrame.sct_col is not None:
-            sdm.current_sct_col = self.rawDataFrame.sct_col[pageNum - 1]
+            ShareDataManager.current_col_data = self.rawDataFrame.sct_col[pageNum - 1]
             if self.inverse:
-                sct_row_df = pd.DataFrame(sdm.current_sct_col, columns=[" "], index=columns)
+                sct_row_df = pd.DataFrame(ShareDataManager.current_col_data, columns=[" "], index=columns)
                 sct_row_model = PandasModel(sct_row_df)
                 self.ui.sctColDataViewer.setModel(sct_row_model)
                 self.ui.sctColDataViewer.resizeRowsToContents()
@@ -1065,23 +1064,23 @@ class Win_SNRDataViewer(QtCore.QObject):
 
 
             else:
-                sct_col_df = pd.DataFrame(sdm.current_sct_col, columns=[" "], index=columns).T
+                sct_col_df = pd.DataFrame(ShareDataManager.current_col_data, columns=[" "], index=columns).T
                 sct_col_model = PandasModel(sct_col_df)
                 self.ui.sctRowDataViewer.setModel(sct_col_model)
                 self.ui.sctRowDataViewer.resizeRowsToContents()
                 self.ui.sctRowDataViewer.resizeColumnsToContents()
 
-        if str(Func_Plot3Dsurface) in sdm.subWinTable:
+        if str(Func_Plot3Dsurface) in ShareDataManager.subWinTable:
             self._resetPlotWidget()
 
-        if str(Func_Plot2DLine) in sdm.subWinTable:
+        if str(Func_Plot2DLine) in ShareDataManager.subWinTable:
             self._resetLinePlotWidget()
 
     def _setNormalDataFrame(self, inverse_flag):
         columns = [f"TX {idx + 1}" for idx in range(self.rawDataFrame.col_num)]
         index = [f"RX {idx + 1}" for idx in range(self.rawDataFrame.row_num)]
         if self.rawDataFrame.mct_grid is not None:
-            mct_df = pd.DataFrame(sdm.current_mct_grid, columns=columns, index=index)
+            mct_df = pd.DataFrame(ShareDataManager.current_grid_data, columns=columns, index=index)
             mct_model = PandasModel(mct_df) if not inverse_flag else PandasModel(mct_df.T)
             self.ui.gridDataViewer.setModel(mct_model)
             self.ui.gridDataViewer.resizeRowsToContents()
@@ -1089,13 +1088,13 @@ class Win_SNRDataViewer(QtCore.QObject):
 
         if self.rawDataFrame.sct_row is not None:
             if self.inverse:
-                sct_row_df = pd.DataFrame(sdm.current_sct_row, columns=[" "], index=index).T
+                sct_row_df = pd.DataFrame(ShareDataManager.current_row_data, columns=[" "], index=index).T
                 sct_row_model = PandasModel(sct_row_df)
                 self.ui.sctRowDataViewer.setModel(sct_row_model)
                 self.ui.sctRowDataViewer.resizeRowsToContents()
                 self.ui.sctRowDataViewer.resizeColumnsToContents()
             else:
-                sct_col_df = pd.DataFrame(sdm.current_sct_row, columns=[" "], index=index)
+                sct_col_df = pd.DataFrame(ShareDataManager.current_row_data, columns=[" "], index=index)
                 sct_col_model = PandasModel(sct_col_df)
                 self.ui.sctColDataViewer.setModel(sct_col_model)
                 self.ui.sctColDataViewer.resizeRowsToContents()
@@ -1103,22 +1102,22 @@ class Win_SNRDataViewer(QtCore.QObject):
 
         if self.rawDataFrame.sct_col is not None:
             if self.inverse:
-                sct_col_df = pd.DataFrame(sdm.current_sct_col, columns=[" "], index=columns)
+                sct_col_df = pd.DataFrame(ShareDataManager.current_col_data, columns=[" "], index=columns)
                 sct_col_model = PandasModel(sct_col_df)
                 self.ui.sctColDataViewer.setModel(sct_col_model)
                 self.ui.sctColDataViewer.resizeRowsToContents()
                 self.ui.sctColDataViewer.resizeColumnsToContents()
             else:
-                sct_row_df = pd.DataFrame(sdm.current_sct_col, columns=[" "], index=columns).T
+                sct_row_df = pd.DataFrame(ShareDataManager.current_col_data, columns=[" "], index=columns).T
                 sct_row_model = PandasModel(sct_row_df)
                 self.ui.sctRowDataViewer.setModel(sct_row_model)
                 self.ui.sctRowDataViewer.resizeRowsToContents()
                 self.ui.sctRowDataViewer.resizeColumnsToContents()
 
-        if str(Func_Plot3Dsurface) in sdm.subWinTable:
+        if str(Func_Plot3Dsurface) in ShareDataManager.subWinTable:
             self._resetPlotWidget()
 
-        if str(Func_Plot2DLine) in sdm.subWinTable:
+        if str(Func_Plot2DLine) in ShareDataManager.subWinTable:
             self._resetLinePlotWidget()
 
     def editPagePressed(self):
@@ -1198,40 +1197,40 @@ class Win_SNRDataViewer(QtCore.QObject):
         # self._resetLinePlotWidget()
 
     def _resetPlotWidget(self):
-        plotWidget: Func_Plot3Dsurface = sdm.subWinTable[str(Func_Plot3Dsurface)]
-        plotWidget.modifier.fillSqrtSinProxy(sdm.current_mct_grid)
+        plotWidget: Func_Plot3Dsurface = ShareDataManager.subWinTable[str(Func_Plot3Dsurface)]
+        plotWidget.modifier.fillSqrtSinProxy(ShareDataManager.current_grid_data)
 
     def _resetLinePlotWidget(self):
 
-        plotWidget: Func_Plot2DLine = sdm.subWinTable[str(Func_Plot2DLine)]
+        plotWidget: Func_Plot2DLine = ShareDataManager.subWinTable[str(Func_Plot2DLine)]
         # reset Rx
         plotWidget.series_Rx.clear()
         plotWidget.set_Rx = QBarSet("Self Cap. Rx")
-        data_Rx = sdm.current_sct_row.flatten()
+        data_Rx = ShareDataManager.current_row_data.flatten()
         plotWidget.set_Rx.append(list(data_Rx))
         plotWidget.series_Rx.append(plotWidget.set_Rx)
 
-        plotWidget.chart_Rx.axisY(plotWidget.series_Rx).setRange(int(sdm.current_sct_row.min()),int(sdm.current_sct_row.max()))
+        plotWidget.chart_Rx.axisY(plotWidget.series_Rx).setRange(int(ShareDataManager.current_row_data.min()), int(ShareDataManager.current_row_data.max()))
         plotWidget.chart_Rx.axisY(plotWidget.series_Rx).setLabelFormat("%d")
         plotWidget.chart_Rx.update()
         # reset Tx
         plotWidget.series_Tx.clear()
         plotWidget.set_Tx = QBarSet("Self Cap. Tx")
-        plotWidget.set_Tx.append(list(sdm.current_sct_col.flatten()))
+        plotWidget.set_Tx.append(list(ShareDataManager.current_col_data.flatten()))
         plotWidget.series_Tx.append(plotWidget.set_Tx)
 
-        plotWidget.chart_Tx.axisY(plotWidget.series_Tx).setRange(int(sdm.current_sct_col.min()), int(sdm.current_sct_col.max()))
+        plotWidget.chart_Tx.axisY(plotWidget.series_Tx).setRange(int(ShareDataManager.current_col_data.min()), int(ShareDataManager.current_col_data.max()))
         plotWidget.chart_Tx.update()
 
     def _resetStackBarPlotWidget(self):
 
-        plotWidget: Func_Plot2DStackBar = sdm.subWinTable[str(Func_Plot2DStackBar)]
+        plotWidget: Func_Plot2DStackBar = ShareDataManager.subWinTable[str(Func_Plot2DStackBar)]
         # reset Rx
         plotWidget.series_Rx.clear()
         plotWidget.rx_Low = QBarSet("Min")
         plotWidget.rx_High = QBarSet("Max")
-        Rx_low_data = sdm.current_sct_row_min.flatten()
-        Rx_high_data = sdm.current_sct_row_max.flatten()
+        Rx_low_data = ShareDataManager.current_sct_row_min.flatten()
+        Rx_high_data = ShareDataManager.current_row_data_max.flatten()
         plotWidget.rx_Low.append(list(Rx_low_data))
         plotWidget.rx_High.append(list(Rx_high_data))
         plotWidget.series_Rx.append(plotWidget.rx_Low)
@@ -1243,8 +1242,8 @@ class Win_SNRDataViewer(QtCore.QObject):
         plotWidget.series_Tx.clear()
         plotWidget.tx_Low = QBarSet("Min")
         plotWidget.tx_High = QBarSet("Max")
-        Tx_low_data = sdm.current_sct_col_min.flatten()
-        Tx_high_data = sdm.current_sct_col_max.flatten()
+        Tx_low_data = ShareDataManager.current_col_data_min.flatten()
+        Tx_high_data = ShareDataManager.current_col_data_max.flatten()
         plotWidget.tx_Low.append(list(Tx_low_data))
         plotWidget.tx_High.append(list(Tx_high_data))
         plotWidget.series_Tx.append(plotWidget.tx_Low)
@@ -1257,20 +1256,20 @@ class Win_SNRDataViewer(QtCore.QObject):
             subWinFunc = FuncClass()
             subWinFunc.setAttribute(Qt.WA_DeleteOnClose)
             # 存入表中，注意winFunc对象也要保存，不然对象没有引用，会销毁
-            sdm.subWinTable[str(FuncClass)] = subWinFunc
+            ShareDataManager.subWinTable[str(FuncClass)] = subWinFunc
 
             subWinFunc.show()
             # 子窗口提到最上层
             subWinFunc.setWindowState(Qt.WindowActive)
 
         # 如果该功能类型 实例不存在
-        if str(FuncClass) not in sdm.subWinTable:
+        if str(FuncClass) not in ShareDataManager.subWinTable:
             # 创建实例
             createSubWin()
             return
 
         # 如果已经存在，直接show一下
-        subWinFunc = sdm.subWinTable[str(FuncClass)]
+        subWinFunc = ShareDataManager.subWinTable[str(FuncClass)]
         try:
             subWinFunc.show()
             # 子窗口提到最上层，并且最大化

@@ -64,6 +64,7 @@
     </property>
     <addaction name="actionHW_THP_SNR_report"/>
     <addaction name="action_BOE_SNR_reporter_2"/>
+    <addaction name="actionGeneral_SNR_report"/>
    </widget>
    <widget class="QMenu" name="menuData_Viewer">
     <property name="title">
@@ -107,6 +108,7 @@
    <addaction name="separator"/>
    <addaction name="actionHW_THP_SNR_report"/>
    <addaction name="action_BOE_SNR_reporter_2"/>
+   <addaction name="actionGeneral_SNR_report"/>
    <addaction name="separator"/>
    <addaction name="actionData_Viewer"/>
    <addaction name="actionSNR_Data_Viewer"/>
@@ -224,6 +226,15 @@
    </property>
    <property name="toolTip">
     <string>APL Analysis using RoT Format data</string>
+   </property>
+  </action>
+  <action name="actionGeneral_SNR_report">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/favicon.ico</normaloff>icons/favicon.ico</iconset>
+   </property>
+   <property name="text">
+    <string>General SNR report</string>
    </property>
   </action>
  </widget>
