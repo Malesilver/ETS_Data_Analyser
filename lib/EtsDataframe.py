@@ -17,6 +17,7 @@ class ETS_Data_Type(Enum):
     Signal_IQ = 'signals_q',
     Delta = 'deltas',
     Baseline = 'baseline',
+    Active_Stylus = 'stylus_sampling'
     Nodemap = 'tbd',
     Unknown = 255,
 
@@ -101,6 +102,9 @@ class EtsDataframe:
 
         elif 'touches' in flag_name_list[0]:
             self.DataType = ETS_Data_Type.Nodemap
+
+        elif 'stylus_sampling' in flag_name_list[0]:
+            self.DataType = ETS_Data_Type.Active_Stylus
         else:
             self.DataType = ETS_Data_Type.Unknown
 
@@ -111,6 +115,7 @@ class EtsDataframe:
 
             if 'sct' in name:
                 self.sct_flag = True
+
 
         # initialise mct and sct data
         if self.DataType is ETS_Data_Type.Delta or self.DataType is ETS_Data_Type.Signal or self.DataType is ETS_Data_Type.Baseline:
