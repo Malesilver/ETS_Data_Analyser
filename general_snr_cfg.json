@@ -1,5 +1,5 @@
 {
-  "Dataset Path": "C:/workspace/workspace/Bitbucket/ETS_Data_Analyser/Data/BOE_0824_v2",
+  "Dataset Path": "C:/Pycharm/ETS_Data_Analyser/Data/BOE_0813_mct_sct",
   "touch file prefix": "w",
   "notouch file prefix": "wo",
   "start idx notouch": "0",

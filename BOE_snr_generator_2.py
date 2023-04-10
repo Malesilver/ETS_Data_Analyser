@@ -253,7 +253,7 @@ class Win_BOE_SNRGenerator_2:
                             BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmaxNppfullscreenR_dB"],
                             BOE_ret["sct_col_summary"]["final_results"]["min_sct_col_SmeanNrmsR_dB"]])
                 else:
-                    tmp_res.extend(["NaN", "NaN"])
+                    tmp_res.extend(["NaN"] * 6)
                 BOE_results.append(tmp_res)
                 # # todo ******** VNX test ****************
                 # VNX_ret = DataAnalyse.VNX_snr_summary()
