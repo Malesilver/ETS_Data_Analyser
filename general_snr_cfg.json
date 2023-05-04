@@ -1,9 +1,9 @@
 {
-  "Dataset Path": "C:/Pycharm/ETS_Data_Analyser/Data/BOE_0813_mct_sct",
+  "Dataset Path": "C:/Users/E0006246/Downloads/9_SNR_240Hz",
   "touch file prefix": "w",
   "notouch file prefix": "wo",
   "start idx notouch": "0",
-  "end idx notouch": "300",
+  "end idx notouch": "1000",
   "start idx touch": "0",
-  "end idx touch": "100"
+  "end idx touch": "1000"
 }

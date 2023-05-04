@@ -330,8 +330,9 @@ class AnalyseData:
         """
         ret = []
         for idx, TouchFrame in enumerate(self.TouchFrameSets):
-            _, row_node, col_node = TouchFrame.mct_signal_position
-            SmeanNnotouchrmsR = TouchFrame.mct_signal_mean / self.all_mct_noise_rms_notouch_node[idx]
+            noise =self.NoTouchFrame.mct_grid_rms_csot
+            signal = TouchFrame.mct_signal_mean
+            SmeanNnotouchrmsR = signal / noise
             ret.append(SmeanNnotouchrmsR)
         return ret
 
@@ -796,13 +797,15 @@ class AnalyseData:
         ret_col = []
 
         for idx, TouchFrame in enumerate(self.TouchFrameSets):
-            _, row_node = TouchFrame.sct_row_signal_position
-            SmeanNnotouchrmsR = TouchFrame.sct_row_signal_mean / self.NoTouchFrame.sct_row_rms[row_node]
+            noise = self.NoTouchFrame.sct_row_rms_csot
+            signal = TouchFrame.sct_row_signal_mean
+            SmeanNnotouchrmsR = signal / noise
             ret_row.append(SmeanNnotouchrmsR)
 
         for idx, TouchFrame in enumerate(self.TouchFrameSets):
-            _, col_node = TouchFrame.sct_col_signal_position
-            SmeanNnotouchrmsR = TouchFrame.sct_col_signal_mean / self.NoTouchFrame.sct_col_rms[col_node]
+            noise = self.NoTouchFrame.sct_col_rms_csot
+            signal = TouchFrame.sct_col_signal_mean
+            SmeanNnotouchrmsR = signal / noise
             ret_col.append(SmeanNnotouchrmsR)
 
         return [ret_row, ret_col]
@@ -1178,7 +1181,7 @@ class AnalyseData:
             mct_ret = {
                 "snr_summary": {
                     "touched node": self.all_touched_position,
-                    "noise_rms_notouch": np.round(self.all_mct_noise_rms_notouch_node, 2),
+                    "noise_rms_notouch": [np.round(self.NoTouchFrame.mct_grid_rms_csot, 2)] * len(self.TouchFrameSets),
                     "noise_rms_touch": np.round(self.all_mct_noise_rms_touch_node, 2),
                     "signal_mean": [round(val, 2) for val in self.all_mct_signal_mean],
                     "SmeanNnotouchrmsR": self.all_SmeanNnotouchrmsR,
@@ -1209,7 +1212,7 @@ class AnalyseData:
             sct_row_ret = {
                 "snr_sct_row_summary": {
                     "touched node": self.all_sct_touched_position[0],
-                    "noise_rms_notouch": np.round(self.all_sct_noise_rms_notouch_node[0], 2),
+                    "noise_rms_notouch": [np.round(self.NoTouchFrame.sct_row_rms_csot, 2)] * len(self.TouchFrameSets),
                     "noise_rms_touch": np.round(self.all_sct_noise_rms_touch_node[0], 2),
                     "signal_mean": [round(val, 2) for val in self.all_sct_signal_mean[0]],
                     "SmeanNnotouchrmsR": self.all_sct_SmeanNnotouchrmsR[0],
@@ -1239,7 +1242,7 @@ class AnalyseData:
             sct_col_ret = {
                 "snr_sct_col_summary": {
                     "touched node": self.all_sct_touched_position[1],
-                    "noise_rms_notouch": [round(val, 2) for val in self.all_sct_noise_rms_notouch_node[1]],
+                    "noise_rms_notouch": [np.round(self.NoTouchFrame.sct_col_rms_csot, 2)] * len(self.TouchFrameSets),
                     "noise_rms_touch": [round(val, 2) for val in self.all_sct_noise_rms_touch_node[1]],
                     "signal_mean": [round(val, 2) for val in self.all_sct_signal_mean[1]],
                     "SmeanNnotouchrmsR": self.all_sct_SmeanNnotouchrmsR[1],

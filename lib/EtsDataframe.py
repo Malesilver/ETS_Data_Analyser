@@ -21,6 +21,20 @@ class ETS_Data_Type(Enum):
     Nodemap = 'tbd',
     Unknown = 255,
 
+# todo 细化数据类型检测， 需要支持signal， signal_iq， delta， baseline， nodemap
+# todo 添加主动笔数据类型，需要考虑是额外创建一个数据类型还是将其作为sct_row 或者 sct_col。建议单独进行处理
+# todo 若是单独显示主动笔数据，需要知道主动笔是只有f1数据还是f1/f2 是否需要分开处理？
+# todo 需要考虑多个数据同时存在的情况，如存在多个mct_grid，或者存在多个sct_row，sct_col 则取第一个有效数据
+# todo 导入数据的流程应该为依次判断grid/row/col/stylus，如果存在则导入，否则跳过
+# todo 在使用可视化工具的时候，当同时存在多个数据时，需要提供选择的功能
+"""
+1. EtsDataframe 需要提供自动检测数据类型的功能，如果存在多个数据类型，则需要提供选择的功能
+2. 默认调用时，默认使用自动检测数据。检索第一个满足要求的数据
+3. 在可视化图形界面下，需要创建一个新的函数，用于检测所有的数据类型，并提供选择的功能。并手动指定EtsDataframe的数据表头
+
+数据表头格式为 {1}：{2}；{3}， 其中1表示component name，2 有 post/pre两个选项，3表示数据名称
+
+"""
 
 class EtsDataframe:
     def __init__(self, file_path=None, Header_index=None, start_idx=None, end_idx=None):
@@ -165,7 +179,7 @@ class EtsDataframe:
                 self.sct_row = df_data[sct_row_name].values.reshape([len(df_data), self.row_num])
                 self.sct_col = df_data[sct_col_name].values.reshape([len(df_data), self.col_num])
             else:
-                raise ('error')
+                raise 'error'
 
 
         elif self.DataType is ETS_Data_Type.Signal_IQ:
@@ -258,7 +272,7 @@ class EtsDataframe:
                 self.sct_row = np.abs(sct_row_i + 1j * sct_row_q)
                 self.sct_col = np.abs(sct_col_i + 1j * sct_col_q)
             else:
-                raise ('error')
+                raise 'error'
 
         self.frame_num = self.__len__()
         if self.start_idx is None or self.end_idx is None:
@@ -278,9 +292,16 @@ class EtsDataframe:
     @property
     def mct_grid_max(self):
         """
-        Calculate the maximum value of each node in all frames
+        Calculate the absolute maximum value of each node in all frames
         """
-        return self.mct_grid.max(axis=0)
+        return np.abs(self.mct_grid).max(axis=0)
+
+    @property
+    def mct_max_per_frame(self):
+        """
+        Calculate the maximum value of each frame
+        """
+        return self.mct_grid.max(axis=(1, 2))
 
     @property
     def mct_grid_min(self):
@@ -334,6 +355,15 @@ class EtsDataframe:
         return np.sqrt(np.var(self.mct_grid, axis=0))
 
     @property
+    def mct_grid_rms_csot(self):
+        """
+        Calculate the rms noise each max node in all frames
+        """
+        # calculate rms noise using mct_max_per_frame
+        return np.sqrt(np.mean(self.mct_max_per_frame ** 2))
+
+
+    @property
     def mct_signal_position(self):
         n, row_node, col_node = np.unravel_index(self.mct_grid.argmax(), self.mct_grid.shape)
         return n, row_node, col_node
@@ -372,6 +402,13 @@ class EtsDataframe:
         return self.sct_row.max(axis=0)
 
     @property
+    def sct_row_max_per_frame(self):
+        """
+        Calculate the abs maximum value of each frame
+        """
+        return np.abs(self.sct_row).max(axis=1)
+
+    @property
     def sct_row_min(self):
         return self.sct_row.min(axis=0)
 
@@ -387,6 +424,14 @@ class EtsDataframe:
     def sct_row_rms(self):
         # alternative method
         return np.sqrt(np.var(self.sct_row, axis=0))
+
+    @property
+    def sct_row_rms_csot(self):
+        """
+        Calculate the rms noise each max node in all frames
+        """
+        # calculate rms noise using mct_max_per_frame
+        return np.sqrt(np.mean(self.sct_row_max_per_frame ** 2))
 
     @property
     def sct_row_signal_position(self):
@@ -449,7 +494,17 @@ class EtsDataframe:
         return self.sct_col.max(axis=0)
 
     @property
+    def sct_col_max_per_frame(self):
+        """
+        Calculate the abs maximum value of each frame
+        """
+        return np.abs(self.sct_col).max(axis=1)
+
+    @property
     def sct_col_min(self):
+        """
+        Calculate the minimum value
+        """
         return self.sct_col.min(axis=0)
 
     @property
@@ -464,6 +519,14 @@ class EtsDataframe:
     def sct_col_rms(self):
         # alternative method
         return np.sqrt(np.var(self.sct_col, axis=0))
+
+    @property
+    def sct_col_rms_csot(self):
+        """
+        Calculate the rms noise each max node in all frames
+        """
+        # calculate rms noise using mct_max_per_frame
+        return np.sqrt(np.mean(self.sct_col_max_per_frame ** 2))
 
     @property
     def sct_col_signal_position(self):
