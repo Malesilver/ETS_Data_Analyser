@@ -8,6 +8,7 @@ from enum import Enum
 
 from copy import deepcopy
 
+
 file_dir = os.path.dirname(__file__)  # the directory that class "option" resides in
 pd.set_option('display.max_columns', None)
 
@@ -37,11 +38,10 @@ class ETS_Data_Type(Enum):
 """
 
 class EtsDataframe:
-    def __init__(self, file_path=None, Header_index=None, start_idx=None, end_idx=None):
+    def __init__(self, file_path=None, start_idx=None, end_idx=None):
         """
         init function
         :param file_path:
-        :param Header_index:
         :param start_idx:
         :param end_idx:
         """
@@ -51,7 +51,6 @@ class EtsDataframe:
         self.sct_col = None
         self.row_num = None
         self.col_num = None
-        self.Header_index = deepcopy(Header_index)
         self.start_idx = start_idx
         self.end_idx = end_idx
         self.frame_num = None

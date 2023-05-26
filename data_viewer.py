@@ -467,7 +467,7 @@ class Win_DataViewer(QtCore.QObject):
 
         ShareDataManager.current_row_data = sct_row_df.values.T
         ShareDataManager.current_row_data_max = sct_row_max
-        ShareDataManager.current_sct_row_min = sct_row_min
+        ShareDataManager.current_row_data_min = sct_row_min
         self._updateFrameInfo()
 
         try:

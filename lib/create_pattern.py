@@ -44,14 +44,14 @@ def create_HW_patterns(output_folder,width, height):
         img_row1[i, :] = (0, 0, 0)  # black
     # cv2.imwrite("./pattern/row.bmp", img_row1)
     im = Image.fromarray(img_row1)
-    im.convert('RGB').save(os.path.join(output_folder,"row.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"row_reversion_01.bmp"))
 
     img_row2 = np.zeros((height, width, 3), dtype=np.uint8)  # black
     for i in range(0, height, 2):
         img_row2[i, :] = (255, 255, 255)  # white
     # cv2.imwrite("./pattern/reverse_row.bmp", img_row2)
     im = Image.fromarray(img_row2)
-    im.convert('RGB').save(os.path.join(output_folder,"reverse_row.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"row_reversion_02.bmp"))
 
     # col reversion
     img_col1 = np.ones((height, width, 3), dtype=np.uint8) * 255  # white
@@ -59,14 +59,14 @@ def create_HW_patterns(output_folder,width, height):
         img_col1[:, i] = (0, 0, 0)  # black
     # cv2.imwrite("./pattern/col.bmp", img_col1)
     im = Image.fromarray(img_col1)
-    im.convert('RGB').save(os.path.join(output_folder,"col.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"col_reversion_01.bmp"))
 
     img_col2 = np.zeros((height, width, 3), dtype=np.uint8)  # black
     for i in range(0, width, 2):
         img_col2[:, i] = (255, 255, 255)  # white
     # cv2.imwrite("./pattern/reverse_col.bmp", img_col2)
     im = Image.fromarray(img_col2)
-    im.convert('RGB').save(os.path.join(output_folder,"reverse_col.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"col_reversion_02.bmp"))
 
     # col green purple reversion
     img_col1 = np.zeros((height, width, 3), dtype=np.uint8)  # black
@@ -76,7 +76,7 @@ def create_HW_patterns(output_folder,width, height):
 
     # cv2.imwrite("./pattern/col_green_purple.bmp", img_col1)
     im = Image.fromarray(img_col1)
-    im.convert('RGB').save(os.path.join(output_folder,"col_green_purple.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"col_green_purple_reversion_01.bmp"))
 
     img_col2 = np.zeros((height, width, 3), dtype=np.uint8)  # black
     for i in range(0, width, 2):
@@ -84,7 +84,7 @@ def create_HW_patterns(output_folder,width, height):
         img_col2[:, i + 1] = (128, 0, 128)
     # cv2.imwrite("./pattern/reverse_col_green_purple.bmp", img_col2)
     im = Image.fromarray(img_col2)
-    im.convert('RGB').save(os.path.join(output_folder,"reverse_col_green_purple.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"col_green_purple_reversion_02.bmp"))
 
     # dot reversion
     img_dot1 = np.zeros((height, width, 3), dtype=np.uint8)  # black
@@ -99,7 +99,7 @@ def create_HW_patterns(output_folder,width, height):
 
     # cv2.imwrite("./pattern/dot.bmp", img_dot1)
     im = Image.fromarray(img_dot1)
-    im.convert('RGB').save(os.path.join(output_folder,"dot.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"dot_reversion_01.bmp"))
 
     img_dot2 = np.zeros((height, width, 3), dtype=np.uint8)  # black
     for i in range(0, height):
@@ -112,7 +112,7 @@ def create_HW_patterns(output_folder,width, height):
                 img_dot2[i, j + 1] = (255, 255, 255)  # white
     # cv2.imwrite("./pattern/reverse_dot.bmp", img_dot2)
     im = Image.fromarray(img_dot2)
-    im.convert('RGB').save(os.path.join(output_folder,"reverse_dot.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"dot_reversion_02.bmp"))
 
     # double_dot reversion
     img_dot1 = np.zeros((height, width, 3), dtype=np.uint8)  # black
@@ -126,7 +126,7 @@ def create_HW_patterns(output_folder,width, height):
                 img_dot1[i:i + 2, j + 1] = (0, 0, 0)  # black
     # cv2.imwrite("./pattern/double_dot.bmp", img_dot1)
     im = Image.fromarray(img_dot1)
-    im.convert('RGB').save(os.path.join(output_folder,"double_dot.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"double_dot_reversion_01.bmp"))
 
     img_dot2 = np.zeros((height, width, 3), dtype=np.uint8)  # black
     for i in range(0, height, 2):
@@ -139,7 +139,7 @@ def create_HW_patterns(output_folder,width, height):
                 img_dot2[i:i + 2, j + 1] = (255, 255, 255)  # white
     # cv2.imwrite("./pattern/reverse_double_dot.bmp", img_dot2)
     im = Image.fromarray(img_dot2)
-    im.convert('RGB').save(os.path.join(output_folder,"reverse_double_dot.bmp"))
+    im.convert('RGB').save(os.path.join(output_folder,"double_dot_reversion_02.bmp"))
 
     # vertical
 
