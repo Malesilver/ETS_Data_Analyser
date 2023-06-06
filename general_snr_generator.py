@@ -323,7 +323,7 @@ class WinGeneralSNRGenerator:
                     else:
                         tmp_res.extend(["NaN"])
 
-                    result_summary["HW_QUICK"].append(tmp_res)
+                    result_summary["HW_THP"].append(tmp_res)
 
                 if self.ui.cBoxHW_thp.isChecked():
                     HW_thp_afe_ret = DataAnalyse.hw_thp_afe_snr_summary()
