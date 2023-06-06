@@ -300,7 +300,7 @@ class WinGeneralSNRGenerator:
                         tmp_res.extend(["NaN"] * 6)
                     result_summary["BOE"].append(tmp_res)
 
-                if self.ui.cBoxHW_thp.isChecked():
+                if self.ui.cBoxHW_quick.isChecked():
 
                     HW_quick_ret = DataAnalyse.hw_quick_snr_summary()
                     DataAnalyse.write_out_csv(HW_quick_ret)
@@ -323,7 +323,7 @@ class WinGeneralSNRGenerator:
                     else:
                         tmp_res.extend(["NaN"])
 
-                    result_summary["HW_THP"].append(tmp_res)
+                    result_summary["HW_QUICK"].append(tmp_res)
 
                 if self.ui.cBoxHW_thp.isChecked():
                     HW_thp_afe_ret = DataAnalyse.hw_thp_afe_snr_summary()
