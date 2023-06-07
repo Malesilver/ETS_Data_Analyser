@@ -328,10 +328,11 @@ class WinGeneralSNRGenerator:
                 if self.ui.cBoxHW_thp.isChecked():
                     HW_thp_afe_ret = DataAnalyse.hw_thp_afe_snr_summary()
                     DataAnalyse.write_out_csv(HW_thp_afe_ret)
+                    DataAnalyse.generate_hw_grid_snr(pattern=pattern)
 
                     tmp_res = [pattern]
                     if HW_thp_afe_ret.get("mct_summary", None) is not None:
-                        tmp_res.extend([HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNppnotouch_dB"],
+                        tmp_res.extend([HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNppR_dB"],
                                         HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNaveR_dB"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
@@ -339,19 +340,21 @@ class WinGeneralSNRGenerator:
                     if HW_thp_afe_ret.get("sct_row_summary", None) is not None:
                         # print(HW_thp_afe_ret)
                         tmp_res.extend(
-                            [HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNppnotouch_dB"],
+                            [HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNppR_dB"],
                              HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNaveR_dB"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
 
                     if HW_thp_afe_ret.get("sct_col_summary", None) is not None:
                         tmp_res.extend(
-                            [HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNppnotouch_dB"],
+                            [HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNppR_dB"],
                              HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNaveR_dB"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
 
                     result_summary["HW_THP"].append(tmp_res)
+
+
 
                 # visionox report is selected
                 if self.ui.cBoxVNX.isChecked():
@@ -429,11 +432,12 @@ class WinGeneralSNRGenerator:
 
                 # convert mct rawdata into grid foramt
                 if self.ui.cBoxLog_grid_rawdata.isChecked():
-                    if DataAnalyse.NoTouchFrame.mct_grid is not None:
-                        DataAnalyse.write_out_filtered_data_csv()
-                    else:
-                        gms.log.emit(
-                            f"Pattern: {pattern} do not have mutual raw data!! Could not generate grid rawdata!")
+                    # if DataAnalyse.NoTouchFrame.mct_grid is not None:
+                    #
+                    # else:
+                    #     gms.log.emit(
+                    #         f"Pattern: {pattern} do not have mutual raw data!! Could not generate grid rawdata!")
+                    DataAnalyse.write_out_decode_mct_csv()
 
                 # plot no touch p2p noise heatmap
                 if self.ui.cBoxPlotNoiseptp.isChecked():
