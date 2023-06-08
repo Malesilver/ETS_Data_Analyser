@@ -832,6 +832,7 @@ class AnalyseData:
         ret_row = [20 * np.log10(val) for val in self.all_sct_SmaxNppfullscreenR[0]]
         ret_col = [20 * np.log10(val) for val in self.all_sct_SmaxNppfullscreenR[1]]
         return [ret_row, ret_col]
+
     @property
     def all_sct_SminNppfullscreenR(self):
 
@@ -1283,11 +1284,11 @@ class AnalyseData:
         ret = {"Customer": "Huawei_THP_AFE"}
 
         if self.NoTouchFrame.mct_grid is not None:
-            min_SminNppfullscreenR_dB = min(self.all_SminNppfullscreenR_dB)
-            min_SminNppfullscreenR_dB_index = self.all_SminNppfullscreenR_dB.index(min(self.all_SminNppfullscreenR_dB))
-            min_SminNavefullscreenR_dB = min(self.all_SminNavefullscreenR_dB)
-            min_SminNavefullscreenR_dB_index = self.all_SminNavefullscreenR_dB.index(
-                min(self.all_SminNavefullscreenR_dB))
+            min_SminNppfullscreenR = min(self.all_SminNppfullscreenR)
+            min_SminNppfullscreenR_index = self.all_SminNppfullscreenR.index(min(self.all_SminNppfullscreenR))
+            min_SminNavefullscreenR = min(self.all_SminNavefullscreenR)
+            min_SminNavefullscreenR_dB_index = self.all_SminNavefullscreenR.index(
+                min(self.all_SminNavefullscreenR))
             mct_ret = {
                 "snr_summary": {
                     "touched node": self.all_touched_position,
@@ -1300,21 +1301,21 @@ class AnalyseData:
                     "SminNaveR_dB": self.all_SminNavefullscreenR_dB,
                 },
                 "final_results": {
-                    "min_SminNppR_dB": "{:.2f}".format(min_SminNppfullscreenR_dB),
-                    "min_SminNppR_dB_index": f"Touch {min_SminNppfullscreenR_dB_index + 1}",
-                    "min_SminNaveR_dB": "{:.2f}".format(min_SminNavefullscreenR_dB),
-                    "min_SminNaveR_dB_index": f"Touch {min_SminNavefullscreenR_dB_index + 1}",
+                    "min_SminNppR": "{:.2f}".format(min_SminNppfullscreenR),
+                    "min_SminNppR_index": f"Touch {min_SminNppfullscreenR_index + 1}",
+                    "min_SminNaveR": "{:.2f}".format(min_SminNavefullscreenR),
+                    "min_SminNaveR_index": f"Touch {min_SminNavefullscreenR_dB_index + 1}",
                 }
             }
             ret["mct_summary"] = mct_ret
 
         if self.NoTouchFrame.sct_row is not None:
-            min_sct_row_SminNppfullscreen_dB = min(self.all_sct_SminNppfullscreenR_dB[0])
-            min_sct_row_SminNppfullscreen_dB_index = self.all_sct_SminNppfullscreenR_dB[0].index(
-                min(self.all_sct_SminNppfullscreenR_dB[0]))
-            min_sct_row_SminNavefullscreenR_dB = min(self.all_sct_SminNavefullscreenR_dB[0])
-            min_sct_row_SminNavefullscreenR_dB_index = self.all_sct_SminNavefullscreenR_dB[0].index(
-                min(self.all_sct_SminNavefullscreenR_dB[0]))
+            min_sct_row_SminNppfullscreen = min(self.all_sct_SminNppfullscreenR[0])
+            min_sct_row_SminNppfullscreen_index = self.all_sct_SminNppfullscreenR[0].index(
+                min(self.all_sct_SminNppfullscreenR[0]))
+            min_sct_row_SminNavefullscreenR = min(self.all_sct_SminNavefullscreenR[0])
+            min_sct_row_SminNavefullscreenR_index = self.all_sct_SminNavefullscreenR[0].index(
+                min(self.all_sct_SminNavefullscreenR[0]))
 
             sct_row_ret = {
                 "snr_sct_row_summary": {
@@ -1328,21 +1329,21 @@ class AnalyseData:
                     "SminNaveR_dB": self.all_sct_SminNavefullscreenR_dB[0],
                 },
                 "final_results": {
-                    "min_sct_row_SminNppR_dB": "{:.2f}".format(min_sct_row_SminNppfullscreen_dB),
-                    "Position_P2P": f"Touch {min_sct_row_SminNppfullscreen_dB_index + 1}",
-                    "min_sct_row_SminNaveR_dB": "{:.2f}".format(min_sct_row_SminNavefullscreenR_dB),
-                    "Position_AVE": f"Touch {min_sct_row_SminNavefullscreenR_dB_index + 1}"
+                    "min_sct_row_SminNppR": "{:.2f}".format(min_sct_row_SminNppfullscreen),
+                    "Position_P2P": f"Touch {min_sct_row_SminNppfullscreen_index + 1}",
+                    "min_sct_row_SminNaveR": "{:.2f}".format(min_sct_row_SminNavefullscreenR),
+                    "Position_AVE": f"Touch {min_sct_row_SminNavefullscreenR_index + 1}"
                 }
             }
             ret["sct_row_summary"] = sct_row_ret
 
         if self.NoTouchFrame.sct_col is not None:
-            min_sct_col_SminNppfullscreen_dB = min(self.all_sct_SminNppfullscreenR_dB[1])
-            min_sct_col_SminNppfullscreen_dB_index = self.all_sct_SminNppfullscreenR_dB[1].index(
-                min(self.all_sct_SminNppfullscreenR_dB[1]))
-            min_sct_col_SminNavefullscreenR_dB = min(self.all_sct_SminNavefullscreenR_dB[1])
-            min_sct_col_SminNavefullscreenR_dB_index = self.all_sct_SminNavefullscreenR_dB[1].index(
-                min(self.all_sct_SminNavefullscreenR_dB[1]))
+            min_sct_col_SminNppfullscreen = min(self.all_sct_SminNppfullscreenR[1])
+            min_sct_col_SminNppfullscreen_index = self.all_sct_SminNppfullscreenR[1].index(
+                min(self.all_sct_SminNppfullscreenR[1]))
+            min_sct_col_SminNavefullscreenR = min(self.all_sct_SminNavefullscreenR[1])
+            min_sct_col_SminNavefullscreenR_index = self.all_sct_SminNavefullscreenR[1].index(
+                min(self.all_sct_SminNavefullscreenR[1]))
             sct_col_ret = {
                 "snr_sct_col_summary": {
                     "touched node": self.all_sct_touched_position[1],
@@ -1355,10 +1356,10 @@ class AnalyseData:
                     "SminNaveR_dB": self.all_sct_SminNavefullscreenR[1]
                 },
                 "final_results": {
-                    "min_sct_col_SminNppR_dB": "{:.2f}".format(min_sct_col_SminNppfullscreen_dB),
-                    "Position_P2P": f"Touch {min_sct_col_SminNppfullscreen_dB_index + 1}",
-                    "min_sct_col_SminNaveR_dB": "{:.2f}".format(min_sct_col_SminNavefullscreenR_dB),
-                    "Position_AVE": f"Touch {min_sct_col_SminNavefullscreenR_dB_index + 1}"
+                    "min_sct_col_SminNppR": "{:.2f}".format(min_sct_col_SminNppfullscreen),
+                    "Position_P2P": f"Touch {min_sct_col_SminNppfullscreen_index + 1}",
+                    "min_sct_col_SminNaveR": "{:.2f}".format(min_sct_col_SminNavefullscreenR),
+                    "Position_AVE": f"Touch {min_sct_col_SminNavefullscreenR_index + 1}"
                 }
             }
             ret["sct_col_summary"] = sct_col_ret
@@ -1533,9 +1534,7 @@ class AnalyseData:
             if self.NoTouchFrame.mct_grid is not None:
                 data_out = pd.DataFrame(index=row,
                                         data=result_dict["mct_summary"]["snr_summary"])
-                # print(data_out)
                 data_out = data_out.round(2)
-                # print(data_out)
                 csv_write = csv.writer(f)
                 csv_write.writerow(["MCT Summary"])
                 data_out.to_csv(f)
@@ -1587,16 +1586,19 @@ class AnalyseData:
                                     list(result_dict["sct_col_summary"]["final_results"].values())):
                         csv_write.writerow([x, y])
 
-    def generate_hw_grid_snr(self,pattern):
+    def generate_hw_grid_snr(self, pattern):
         for idx in range(len(self.TouchFrameSets)):
-            self.write_out_decode_grid_line_csv(mct_data=self.all_SminNppfullscreenR_grid[idx] if self.NoTouchFrame.mct_flag else None,
-                                                row_data=self.all_sct_SminNppfullscreenR_line[0][idx] if self.NoTouchFrame.sct_flag else None,
-                                                col_data=self.all_sct_SminNppfullscreenR_line[1][idx] if self.NoTouchFrame.sct_flag else None,
-                                                filename= f"{pattern}_SNppR")
-            self.write_out_decode_grid_line_csv(mct_data=self.all_SminNaveR_grid[idx] if self.NoTouchFrame.mct_flag else None,
-                                                row_data=self.all_sct_SminNaveR_line[0][idx] if self.NoTouchFrame.sct_flag else None,
-                                                col_data=self.all_sct_SminNaveR_line[1][idx] if self.NoTouchFrame.sct_flag else None,
-                                                filename= f"{pattern}_SNaveR")
+            self.write_out_decode_grid_line_csv(
+                mct_data=self.all_SminNppfullscreenR_grid[idx] if self.NoTouchFrame.mct_flag else None,
+                row_data=self.all_sct_SminNppfullscreenR_line[0][idx] if self.NoTouchFrame.sct_flag else None,
+                col_data=self.all_sct_SminNppfullscreenR_line[1][idx] if self.NoTouchFrame.sct_flag else None,
+                filename=f"Touch{idx}_fullscreen_SNppR")
+            self.write_out_decode_grid_line_csv(
+                mct_data=self.all_SminNaveR_grid[idx] if self.NoTouchFrame.mct_flag else None,
+                row_data=self.all_sct_SminNaveR_line[0][idx] if self.NoTouchFrame.sct_flag else None,
+                col_data=self.all_sct_SminNaveR_line[1][idx] if self.NoTouchFrame.sct_flag else None,
+                filename=f"Touch{idx}_fullscreen_SNaveR")
+
     def write_out_filtered_data_csv(self):
         for idx, TouchFrame in enumerate(self.TouchFrameSets):
             touch_out_path = os.path.join(self.output_folder,
@@ -1623,13 +1625,13 @@ class AnalyseData:
             if mct_data is None:
                 mct_data = np.zeros([self.NoTouchFrame.sct_row.shape[1], self.NoTouchFrame.sct_col.shape[1]])
             else:
-                mct_data = np.round(mct_data,2)
+                mct_data = np.round(mct_data, 2)
 
             if row_data is not None:
-                row_data = np.round(row_data,2)
+                row_data = np.round(row_data, 2)
 
             if col_data is not None:
-                col_data = np.round(col_data,2)
+                col_data = np.round(col_data, 2)
 
             # write a row to the csv file
             writer.writerow(["Mutual SNR"])
@@ -1794,8 +1796,8 @@ class AnalyseData:
         ax.set_ylabel('Row')
         ax.set_xlabel('Column')
         plt.title('Grid positive Noise [%d , %d]\n Mean=%.0f; Min=%.0f; Max=%.0f' % (
-            self.NoTouchFrame.row_num, self.NoTouchFrame.col_num, grid_data.mean(), grid_data.min(),
-            grid_data.max()))
+            self.NoTouchFrame.row_num, self.NoTouchFrame.col_num, np.nanmean(grid_data), np.nanmin(grid_data),
+            np.nanmax(grid_data)))
 
         for idx, (ynode, xnode) in enumerate(self.all_touched_position):
             self.annotate_grid_figure(ax=ax, ynode=ynode, xnode=xnode, Text=f"Touch {idx + 1}")
@@ -1812,8 +1814,8 @@ class AnalyseData:
         ax.set_ylabel('Row')
         ax.set_xlabel('Column')
         plt.title('Grid Negative Noise [%d , %d]\n Mean=%.0f; Min=%.0f; Max=%.0f' % (
-            self.NoTouchFrame.row_num, self.NoTouchFrame.col_num, grid_data.mean(), grid_data.min(),
-            grid_data.max()))
+            self.NoTouchFrame.row_num, self.NoTouchFrame.col_num, np.nanmean(grid_data), np.nanmin(grid_data),
+            np.nanmax(grid_data)))
 
         for idx, (ynode, xnode) in enumerate(self.all_touched_position):
             self.annotate_grid_figure(ax=ax, ynode=ynode, xnode=xnode, Text=f"Touch {idx + 1}")
@@ -1947,10 +1949,10 @@ class AnalyseData:
 
         fig.suptitle('Line All Touch Positive Noise \nRow Mean=%.0f; Row Min=%.0f; Row Max=%.0f \nCol Mean=%.0f; Col '
                      'Min=%.0f; Col Max=%.0f' % (
-                         np.mean(self.all_sct_pos_noise_line[0]), np.min(self.all_sct_pos_noise_line[0]),
-                         np.max(self.all_sct_pos_noise_line[0]),
-                         np.mean(self.all_sct_pos_noise_line[1]), np.min(self.all_sct_pos_noise_line[1]),
-                         np.max(self.all_sct_pos_noise_line[1])))
+                         np.nanmean(self.all_sct_pos_noise_line[0]), np.nanmin(self.all_sct_pos_noise_line[0]),
+                         np.nanmax(self.all_sct_pos_noise_line[0]),
+                         np.nanmean(self.all_sct_pos_noise_line[1]), np.nanmin(self.all_sct_pos_noise_line[1]),
+                         np.nanmax(self.all_sct_pos_noise_line[1])))
 
         plt.tight_layout()
 
@@ -1988,10 +1990,10 @@ class AnalyseData:
 
         fig.suptitle('Line All Touch Negative Noise \nRow Mean=%.0f; Row Min=%.0f; Row Max=%.0f \nCol Mean=%.0f; Col '
                      'Min=%.0f; Col Max=%.0f' % (
-                         np.mean(self.all_sct_neg_noise_line[0]), np.min(self.all_sct_neg_noise_line[0]),
-                         np.max(self.all_sct_neg_noise_line[0]),
-                         np.mean(self.all_sct_neg_noise_line[1]), np.min(self.all_sct_neg_noise_line[1]),
-                         np.max(self.all_sct_neg_noise_line[1])))
+                         np.nanmean(self.all_sct_neg_noise_line[0]), np.nanmin(self.all_sct_neg_noise_line[0]),
+                         np.nanmax(self.all_sct_neg_noise_line[0]),
+                         np.nanmean(self.all_sct_neg_noise_line[1]), np.nanmin(self.all_sct_neg_noise_line[1]),
+                         np.nanmax(self.all_sct_neg_noise_line[1])))
 
         plt.tight_layout()
 
@@ -2031,6 +2033,121 @@ class AnalyseData:
                     bbox=dict(boxstyle="round", fc=boxcoler, alpha=0.65),
                     arrowprops=dict(arrowstyle="->", edgecolor=arrowcolor,
                                     connectionstyle="angle,angleA=90,angleB=0,rad=10"))
+
+    def generate_hw_snr_except_notch(self):
+        if self.NoTouchFrame.mct_grid is None:
+            return
+        notch_list = [[0, 0], [38, 0], [0, 17], [38, 17], [1, 12], [1, 13], [1, 14], [1, 15]]
+
+        # modify mct ave noise with notch
+        mct_noise_ave = self.mct_noise_ave_grid
+        for (notch_row, notch_col) in notch_list:
+            mct_noise_ave[notch_row][notch_col] = np.NaN
+
+        # modify mct peak-peak noise with notch
+        mct_noise_p2p = self.mct_noise_p2p_grid.astype(float)
+        for (notch_row, notch_col) in notch_list:
+            mct_noise_p2p[notch_row][notch_col] = np.NaN
+
+        # calculate SNaveR grid except notch
+        all_SminNaveR_grid = []
+        for TouchFrame in self.TouchFrameSets:
+            signal = TouchFrame.mct_signal_min
+            noise_grid = mct_noise_ave
+            SminNaveR_grid = signal / noise_grid
+            all_SminNaveR_grid.append(SminNaveR_grid)
+
+        # calculate SNppR grid except notch
+        all_SminNppR_grid = []
+        for TouchFrame in self.TouchFrameSets:
+            signal = TouchFrame.mct_signal_min
+            noise_grid = mct_noise_p2p
+            SminNppR_grid = signal / noise_grid
+            all_SminNppR_grid.append(SminNppR_grid)
+
+        # calculate all SNaveR value except notch
+        all_SminNaveR = []
+        for SminNaveR_grid in all_SminNaveR_grid:
+            SminNaveR = np.nanmin(SminNaveR_grid)
+            all_SminNaveR.append(SminNaveR)
+
+        all_SminNaveR_dB = [20 * np.log10(val) for val in all_SminNaveR]
+
+
+        # calculate all SNppR value except notch
+        all_SminNppR = []
+        for SminNppR_grid in all_SminNppR_grid:
+            SminNppR = np.nanmin(SminNppR_grid)
+            all_SminNppR.append(SminNppR)
+
+        all_SminNppR_dB = [20 * np.log10(val) for val in all_SminNppR]
+
+        # summary
+        ret = {"Customer": "Huawei_THP_AFE"}
+
+        min_SminNppfullscreenR = min(all_SminNppR)
+        min_SminNppfullscreenR_index = all_SminNppR.index(min(all_SminNppR))
+        min_SminNavefullscreenR = min(all_SminNaveR)
+        min_SminNavefullscreenR_dB_index = all_SminNaveR.index(min(all_SminNaveR))
+        mct_ret = {
+            "snr_summary": {
+                "touched node": self.all_touched_position,
+                "noise_p2p_fullscreen": [np.nanmax(mct_noise_p2p)] * len(self.TouchFrameSets),
+                "noise_ave_fullscreen": [np.nanmax(mct_noise_ave)] * len(self.TouchFrameSets),
+                "signal_min": self.all_mct_signal_min,
+                "min_SminNppR": all_SminNppR,
+                "min_SminNppR_dB": all_SminNppR_dB,
+                "SminNaveR": all_SminNaveR,
+                "SminNaveR_dB": all_SminNaveR_dB,
+            },
+            "final_results": {
+                "min_SminNppR_dB": "{:.2f}".format(min_SminNppfullscreenR),
+                "min_SminNppR_dB_index": f"Touch {min_SminNppfullscreenR_index + 1}",
+                "min_SminNaveR_dB": "{:.2f}".format(min_SminNavefullscreenR),
+                "min_SminNaveR_dB_index": f"Touch {min_SminNavefullscreenR_dB_index + 1}",
+            }
+        }
+        ret["mct_summary"] = mct_ret
+
+
+        # write summary
+        row = ["Touch {}".format(idx + 1) for idx in range(len(self.TouchFrameSets))]
+        output_path = os.path.join(self.output_folder,
+                                   ret["Customer"] + "_Except_Notch_" + self.pattern + "_output_info.csv")
+
+        with open(output_path, 'w', newline='') as f:
+
+            if self.NoTouchFrame.mct_grid is not None:
+                data_out = pd.DataFrame(index=row,
+                                        data=ret["mct_summary"]["snr_summary"])
+                data_out = data_out.round(2)
+                csv_write = csv.writer(f)
+                csv_write.writerow(["MCT Summary"])
+                data_out.to_csv(f)
+
+        if os.path.exists(output_path):
+            with open(output_path, 'a+', newline='') as f:
+                csv_write = csv.writer(f)
+
+                if self.NoTouchFrame.mct_grid is not None:
+                    csv_write.writerow("\n")
+
+                    csv_write.writerow(["Final Result MCT:"])
+                    for x, y in zip(list(ret["mct_summary"]["final_results"].keys()),
+                                    list(ret["mct_summary"]["final_results"].values())):
+                        csv_write.writerow([x, y])
+
+
+        # write grid data
+        for idx in range(len(self.TouchFrameSets)):
+            self.write_out_decode_grid_line_csv(
+                mct_data=all_SminNppR_grid[idx] if self.NoTouchFrame.mct_flag else None,
+
+                filename=f"Touch{idx}_Except_Notch_SNppR")
+            self.write_out_decode_grid_line_csv(
+                mct_data=all_SminNaveR_grid[idx] if self.NoTouchFrame.mct_flag else None,
+
+                filename=f"Touch{idx}_Except_Notch_SNaveR")
 
 
 def get_touched_num(folder, prefix):

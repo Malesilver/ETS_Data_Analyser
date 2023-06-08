@@ -33,8 +33,8 @@ class WinGeneralSNRGenerator:
                     "noise sct col(p2p)", "noise sct col(rms)", "signal sct col(p2p)", "signal sct col(rms)",
                     "SNppR SCT Col", "SNrmsR SCT Col"],
             'HW_QUICK': ["pattern", "SNppR MCT(dB)", "SNppR SCT Row(dB)", "SNppR SCT Col(dB)"],
-            'HW_THP': ["pattern", "SminNppR MCT(dB)", "SmeanNppR MCT(dB)", "SminNppR SCT Row(dB)",
-                       "SmeanNppR SCT Row(dB)", "SminNppR SCT Col(dB)", "SmeanNppR SCT Col(dB)"],
+            'HW_THP': ["pattern", "SminNppR MCT(ratio)", "SmeanNaveR MCT(ratio)", "SminNppR SCT Row(ratio)",
+                       "SmeanNaveR SCT Row(ratio)", "SminNppR SCT Col(ratio)", "SmeanNaveR SCT Col(ratio)"],
             'VNX': ["pattern", "SNrmsR MCT(dB)", "SNrmsR SCT Row(dB)", "SNrmsR SCT Col(dB)"],
             'CSOT': ["pattern", "SNrmsR MCT(dB)","SNnotouchrmsR MCT(dB)", "SNrmsR SCT Row(dB)",
                      "SNnotouchrmsR SCT ROW(dB)", "SNrmsR SCT Col(dB)" ,"SNnotouchrmsR SCT COL(dB)"],
@@ -332,23 +332,23 @@ class WinGeneralSNRGenerator:
 
                     tmp_res = [pattern]
                     if HW_thp_afe_ret.get("mct_summary", None) is not None:
-                        tmp_res.extend([HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNppR_dB"],
-                                        HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNaveR_dB"]])
+                        tmp_res.extend([HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNppR"],
+                                        HW_thp_afe_ret["mct_summary"]["final_results"]["min_SminNaveR"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
 
                     if HW_thp_afe_ret.get("sct_row_summary", None) is not None:
                         # print(HW_thp_afe_ret)
                         tmp_res.extend(
-                            [HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNppR_dB"],
-                             HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNaveR_dB"]])
+                            [HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNppR"],
+                             HW_thp_afe_ret["sct_row_summary"]["final_results"]["min_sct_row_SminNaveR"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
 
                     if HW_thp_afe_ret.get("sct_col_summary", None) is not None:
                         tmp_res.extend(
-                            [HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNppR_dB"],
-                             HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNaveR_dB"]])
+                            [HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNppR"],
+                             HW_thp_afe_ret["sct_col_summary"]["final_results"]["min_sct_col_SminNaveR"]])
                     else:
                         tmp_res.extend(["NaN", "NaN"])
 
@@ -431,12 +431,8 @@ class WinGeneralSNRGenerator:
                     result_summary["CSOT"].append(tmp_res)
 
                 # convert mct rawdata into grid foramt
-                if self.ui.cBoxLog_grid_rawdata.isChecked():
-                    # if DataAnalyse.NoTouchFrame.mct_grid is not None:
-                    #
-                    # else:
-                    #     gms.log.emit(
-                    #         f"Pattern: {pattern} do not have mutual raw data!! Could not generate grid rawdata!")
+                if self.ui.cBoxDecode_rawdata.isChecked():
+
                     DataAnalyse.write_out_decode_mct_csv()
 
                 # plot no touch p2p noise heatmap
@@ -495,6 +491,10 @@ class WinGeneralSNRGenerator:
                     else:
                         gms.log.emit(f"Pattern: {pattern} do not have mutual raw data!! Could not plot "
                                      f"average Noise Map!")
+
+                if self.ui.cBoxHWSNR_notch.isChecked():
+                    DataAnalyse.generate_hw_snr_except_notch()
+
 
                 gms.log.emit(f"Already successful finish {pattern} !!!!!!!!!!!!")
 

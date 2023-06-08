@@ -4,7 +4,7 @@ import numpy as np
 import os
 from typing import List
 import pandas as pd
-from enum import Enum
+from enum import Enum, auto
 
 from copy import deepcopy
 
@@ -21,6 +21,12 @@ class ETS_Data_Type(Enum):
     Active_Stylus = 'stylus_sampling'
     Nodemap = 'tbd',
     Unknown = 255,
+
+class ActiveAreaOptions(Enum):
+    FULLSCREEN = auto()
+    EXCEPT_NOTCH = auto()
+    EXCEPT_CORNER = auto()
+    EXCEPT_NOTCH_AND_CORNER = auto()
 
 # todo 细化数据类型检测， 需要支持signal， signal_iq， delta， baseline， nodemap
 # todo 添加主动笔数据类型，需要考虑是额外创建一个数据类型还是将其作为sct_row 或者 sct_col。建议单独进行处理
@@ -271,7 +277,7 @@ class EtsDataframe:
                 self.sct_row = np.abs(sct_row_i + 1j * sct_row_q)
                 self.sct_col = np.abs(sct_col_i + 1j * sct_col_q)
             else:
-                raise 'error'
+                raise ValueError('error')
 
         self.frame_num = self.__len__()
         if self.start_idx is None or self.end_idx is None:
