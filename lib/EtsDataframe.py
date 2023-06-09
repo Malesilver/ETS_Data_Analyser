@@ -8,7 +8,6 @@ from enum import Enum, auto
 
 from copy import deepcopy
 
-
 file_dir = os.path.dirname(__file__)  # the directory that class "option" resides in
 pd.set_option('display.max_columns', None)
 
@@ -22,11 +21,13 @@ class ETS_Data_Type(Enum):
     Nodemap = 'tbd',
     Unknown = 255,
 
+
 class ActiveAreaOptions(Enum):
     FULLSCREEN = auto()
     EXCEPT_NOTCH = auto()
     EXCEPT_CORNER = auto()
     EXCEPT_NOTCH_AND_CORNER = auto()
+
 
 # todo 细化数据类型检测， 需要支持signal， signal_iq， delta， baseline， nodemap
 # todo 添加主动笔数据类型，需要考虑是额外创建一个数据类型还是将其作为sct_row 或者 sct_col。建议单独进行处理
@@ -42,6 +43,7 @@ class ActiveAreaOptions(Enum):
 数据表头格式为 {1}：{2}；{3}， 其中1表示component name，2 有 post/pre两个选项，3表示数据名称
 
 """
+
 
 class EtsDataframe:
     def __init__(self, file_path=None, start_idx=None, end_idx=None):
@@ -134,7 +136,6 @@ class EtsDataframe:
 
             if 'sct' in name:
                 self.sct_flag = True
-
 
         # initialise mct and sct data
         if self.DataType is ETS_Data_Type.Delta or self.DataType is ETS_Data_Type.Signal or self.DataType is ETS_Data_Type.Baseline:
@@ -366,7 +367,6 @@ class EtsDataframe:
         """
         # calculate rms noise using mct_max_per_frame
         return np.sqrt(np.mean(self.mct_max_per_frame ** 2))
-
 
     @property
     def mct_signal_position(self):
